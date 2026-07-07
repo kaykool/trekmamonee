@@ -18,7 +18,8 @@ export interface Transaction {
   amount: number;
   categoryId: string;
   type: TransactionType;
-  note: string;
+  itemName: string;
+
   date: string; // YYYY-MM-DD
   createdAt: number;
   updatedAt: number;

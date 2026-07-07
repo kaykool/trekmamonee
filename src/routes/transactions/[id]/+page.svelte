@@ -11,7 +11,7 @@
 
   let type = $state<TransactionType>('expense');
   let amount = $state<number | undefined>();
-  let note = $state('');
+  let itemName = $state('');
   let date = $state(new Date().toISOString().split('T')[0]);
   let selectedCategoryId = $state<string>('');
 
@@ -29,7 +29,7 @@
         if (tx) {
           type = tx.type;
           amount = tx.amount;
-          note = tx.note || '';
+          itemName = tx.itemName || '';
           date = tx.date;
           selectedCategoryId = tx.categoryId;
           originalCreatedAt = tx.createdAt;
@@ -73,6 +73,11 @@
       return;
     }
     
+    if (!itemName.trim()) {
+      alert('Please enter an item name');
+      return;
+    }
+    
     if (!selectedCategoryId) {
       alert('Please select a category');
       return;
@@ -85,7 +90,7 @@
         amount,
         categoryId: selectedCategoryId,
         type,
-        note,
+        itemName,
         date,
         createdAt: originalCreatedAt,
         updatedAt: Date.now()
@@ -134,6 +139,13 @@
         bind:value={amount}
         class="text-lg"
       />
+
+      <Input 
+        type="text" 
+        label="Item Name" 
+        placeholder="e.g. Nasi Goreng"
+        bind:value={itemName}
+      />
       
       <div class="flex flex-col gap-1.5">
         <span class="text-sm font-medium text-text-light dark:text-text-dark">Category</span>
@@ -153,7 +165,7 @@
       </div>
 
       <Input type="date" label="Date" bind:value={date} />
-      <Input type="text" label="Note (Optional)" placeholder="e.g. Lunch with friends" bind:value={note} />
+
     </Card>
 
     <div class="flex gap-3">

@@ -12,10 +12,8 @@ test.describe('Transaction CRUD & IndexedDB', () => {
     // Make sure we are on the expense tab
     await page.getByRole('button', { name: 'Expense', exact: true }).click();
 
-    // Fill in amount
+    // Fill in amount and item name
     await page.fill('input[type="number"]', '50000');
-
-    // Add note
     await page.fill('input[type="text"]', 'Nasi Goreng');
 
     // Click on the first category (Food & Dining should be seeded)
@@ -47,10 +45,8 @@ test.describe('Transaction CRUD & IndexedDB', () => {
     // Wait for categories to swap (Income categories)
     await page.waitForTimeout(300);
 
-    // Fill in amount
+    // Fill in amount and item name
     await page.fill('input[type="number"]', '1000000');
-
-    // Add note
     await page.fill('input[type="text"]', 'Gaji');
 
     // Click on the first category (Salary)
@@ -129,12 +125,12 @@ test.describe('Transaction CRUD & IndexedDB', () => {
     await page.getByRole('button', { name: 'Add Transaction' }).click();
     await page.getByRole('button', { name: 'Expense', exact: true }).click();
     await page.fill('input[type="number"]', '20000');
-    await page.fill('input[type="text"]', 'Old Note');
+    await page.fill('input[type="text"]', 'Old Item');
     await page.locator('.grid button').first().click();
     await page.locator('button:has-text("Save expense")').click();
 
     // Click the transaction to open the Action BottomSheet
-    await page.locator('button:has-text("Old Note")').click();
+    await page.locator('button:has-text("Old Item")').click();
     
     // Click Edit in the BottomSheet (opens the form BottomSheet)
     await page.locator('button:has-text("Edit Transaction")').click();
@@ -144,11 +140,11 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 
     // Verify existing data is populated
     await expect(page.locator('input[type="number"]')).toHaveValue('20000');
-    await expect(page.locator('input[type="text"]')).toHaveValue('Old Note');
+    await expect(page.locator('input[type="text"]')).toHaveValue('Old Item');
 
     // Edit the data
     await page.fill('input[type="number"]', '35000');
-    await page.fill('input[type="text"]', 'Updated Note');
+    await page.fill('input[type="text"]', 'Updated Item');
 
     // Save
     await page.locator('button:has-text("Update expense")').click();
@@ -156,7 +152,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
     // Verify it updated in history (sheet should close)
     await expect(page.locator('h2:has-text("Edit Transaction")')).not.toBeVisible();
     
-    const txItem = page.locator('button:has-text("Updated Note")');
+    const txItem = page.locator('button:has-text("Updated Item")');
     await expect(txItem).toBeVisible();
     const amountText = await txItem.textContent();
     expect(amountText).toContain('35.000');
@@ -214,7 +210,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
     // Click on the newly created 'Gaming' category
     await page.locator('.grid button:has-text("Gaming")').click();
 
-    // Fill in amount and note to save transaction
+    // Fill in amount to save transaction
     await page.fill('input[type="number"]', '600000');
     await page.fill('input[type="text"]', 'Steam Game');
 

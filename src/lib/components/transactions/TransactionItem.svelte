@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Transaction, Category } from '$lib/db';
-  import { createEventDispatcher } from 'svelte';
 
   let {
     transaction,
@@ -38,10 +37,8 @@
     
     <!-- Details -->
     <div class="flex flex-col items-start">
-      <span class="font-semibold text-text-light dark:text-text-dark">{category?.name || 'Unknown'}</span>
-      {#if transaction.note}
-        <span class="truncate text-sm text-text-light/60 dark:text-text-dark/60 max-w-[150px] text-left">{transaction.note}</span>
-      {/if}
+      <span class="font-semibold text-text-light dark:text-text-dark max-w-[150px] truncate text-left">{transaction.itemName || 'Unknown Item'}</span>
+      <span class="truncate text-xs text-text-light/60 dark:text-text-dark/60 max-w-[150px] text-left">{category?.name || 'Unknown Category'}</span>
     </div>
   </div>
 

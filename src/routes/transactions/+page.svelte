@@ -154,7 +154,7 @@
       <span class="text-3xl font-bold {selectedTransaction.type === 'expense' ? 'text-danger' : 'text-primary'}">
         {selectedTransaction.type === 'expense' ? '-' : '+'}{formattedAmount}
       </span>
-      <span class="text-text-light/60 dark:text-text-dark/60">{selectedTransaction.note || 'No notes'}</span>
+      <span class="text-xl font-semibold text-text-light dark:text-text-dark mt-2">{selectedTransaction.itemName}</span>
     </div>
 
     <div class="flex flex-col gap-3">

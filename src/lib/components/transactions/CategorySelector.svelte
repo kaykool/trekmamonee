@@ -118,7 +118,7 @@
       {/if}
     </button>
   </div>
-  <div class="grid grid-cols-4 gap-3 min-h-[180px] content-start">
+  <div class="grid grid-cols-4 gap-3 content-start">
     {#each categories as category}
       <div 
         role="button"
