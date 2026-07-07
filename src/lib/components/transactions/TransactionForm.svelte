@@ -141,8 +141,6 @@
       <Input type="text" label="Note (Optional)" placeholder="e.g. Lunch with friends" bind:value={note} />
     </Card>
 
-
-
     <div class="sticky bottom-0 z-10 flex gap-3 bg-surface-light dark:bg-surface-dark pb-6 pt-4 mt-auto -mx-6 px-6 -mb-6">
       <Button variant="secondary" class="flex-1" onclick={closeTransactionSheet} disabled={isSaving}>Cancel</Button>
       <Button 
