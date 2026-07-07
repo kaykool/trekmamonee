@@ -48,7 +48,7 @@
   <!-- Dialog -->
   <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
     <div 
-      class="w-full max-w-sm rounded-2xl bg-surface-light p-6 shadow-2xl dark:bg-surface-dark pointer-events-auto"
+      class="w-full max-w-[24rem] rounded-2xl bg-surface-light p-6 shadow-2xl dark:bg-surface-dark pointer-events-auto"
       transition:scale={{ start: 0.95, duration: 200, easing: cubicOut }}
     >
       <h2 class="mb-2 text-lg font-bold text-text-light dark:text-text-dark">{title}</h2>
