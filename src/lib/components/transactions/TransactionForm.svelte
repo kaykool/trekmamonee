@@ -21,7 +21,6 @@
 
   let isSaving = $state(false);
   let isLoading = $state(!!transactionId);
-  let formError = $state<string | null>(null);
   
   let originalCreatedAt = $state<number>(Date.now());
 
@@ -52,23 +51,16 @@
     }
   });
 
-  // Clear error when user changes type or amount
-  $effect(() => {
-    if (amount !== undefined || type) {
-      formError = null;
-    }
-  });
+
 
   async function handleSave() {
-    formError = null;
-
     if (!amount || amount <= 0) {
-      formError = 'Please enter a valid amount greater than 0.';
+      addToast('Please enter a valid amount greater than 0.', 'error', 5000);
       return;
     }
     
     if (!selectedCategoryId) {
-      formError = 'Please select a category.';
+      addToast('Please select a category.', 'error', 5000);
       return;
     }
 
@@ -148,11 +140,7 @@
       <Input type="text" label="Note (Optional)" placeholder="e.g. Lunch with friends" bind:value={note} />
     </Card>
 
-    {#if formError}
-      <div class="rounded-lg bg-danger/10 p-3 text-sm text-danger dark:bg-danger/20">
-        {formError}
-      </div>
-    {/if}
+
 
     <div class="sticky bottom-0 z-10 flex gap-3 bg-surface-light dark:bg-surface-dark pb-6 pt-4 mt-auto -mx-6 px-6 -mb-6">
       <Button variant="secondary" class="flex-1" onclick={closeTransactionSheet} disabled={isSaving}>Cancel</Button>

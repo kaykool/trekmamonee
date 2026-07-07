@@ -40,14 +40,14 @@ export function closeConfirmDialog() {
   uiState.confirmDialog.isOpen = false;
 }
 
-export function addToast(message: string, type: ToastType = 'info') {
+export function addToast(message: string, type: ToastType = 'info', duration: number = 4000) {
   const id = crypto.randomUUID();
   uiState.toasts.push({ id, message, type });
   
-  // Auto remove after 3 seconds
+  // Auto remove after duration
   setTimeout(() => {
     uiState.toasts = uiState.toasts.filter(t => t.id !== id);
-  }, 3000);
+  }, duration);
 }
 
 export function removeToast(id: string) {
