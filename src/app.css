@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: oklch(0.65 0.18 155);
+  --color-danger: oklch(0.60 0.20 25);
+  --color-warning: oklch(0.75 0.15 75);
+
+  --color-bg-dark: oklch(0.15 0.02 250);
+  --color-surface-dark: oklch(0.20 0.02 250);
+  --color-text-dark: oklch(0.92 0 0);
+
+  --color-bg-light: oklch(0.97 0.005 250);
+  --color-surface-light: oklch(1 0 0);
+  --color-text-light: oklch(0.20 0.02 250);
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-full: 9999px;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-bg-light text-text-light antialiased transition-colors duration-300;
+  }
+
+  .dark body {
+    @apply bg-bg-dark text-text-dark;
+  }
+}
