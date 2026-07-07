@@ -1,6 +1,6 @@
 <script lang="ts">
   let {
-    value = $bindable(''),
+    value = $bindable(),
     type = 'text',
     label,
     placeholder = '',
@@ -35,7 +35,7 @@
     {placeholder}
     {disabled}
     bind:value
-    class="flex h-10 w-full rounded-md border border-surface-dark/20 dark:border-surface-light/20 bg-surface-light dark:bg-surface-dark px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder:text-text-light/50 dark:placeholder:text-text-dark/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 {error ? 'border-danger focus-visible:ring-danger' : ''}"
+    class="flex h-10 w-full rounded-md border border-surface-dark/20 dark:border-surface-light/20 bg-surface-light dark:bg-surface-dark px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder:text-text-light/50 dark:placeholder:text-text-dark/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 dark:[color-scheme:dark] {error ? 'border-danger focus-visible:ring-danger' : ''}"
     {...rest}
   />
   
