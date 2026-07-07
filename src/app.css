@@ -39,4 +39,12 @@
   .dark body {
     @apply bg-bg-dark text-text-dark;
   }
+
+  button, [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
