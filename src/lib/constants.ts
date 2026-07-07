@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
   toast: {
-    defaultDurationMs: 4000,
-    errorDurationMs: 5000,
+    defaultDurationMs: 3000,
+    errorDurationMs: 4000,
   },
   animations: {
     bottomSheetCloseDelayMs: 300,

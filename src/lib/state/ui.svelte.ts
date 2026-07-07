@@ -1,3 +1,5 @@
+import { APP_CONFIG } from '$lib/constants';
+
 export type ToastType = 'success' | 'info' | 'warning' | 'error';
 export interface Toast {
   id: string;
@@ -40,7 +42,7 @@ export function closeConfirmDialog() {
   uiState.confirmDialog.isOpen = false;
 }
 
-export function addToast(message: string, type: ToastType = 'info', duration: number = 4000) {
+export function addToast(message: string, type: ToastType = 'info', duration: number = APP_CONFIG.toast.defaultDurationMs) {
   const id = crypto.randomUUID();
   uiState.toasts.push({ id, message, type });
   
@@ -73,5 +75,5 @@ export function closeTransactionSheet() {
   // Delay clearing the ID slightly so the exit animation finishes cleanly
   setTimeout(() => {
     uiState.editingTransactionId = null;
-  }, 300);
+  }, APP_CONFIG.animations.bottomSheetCloseDelayMs);
 }

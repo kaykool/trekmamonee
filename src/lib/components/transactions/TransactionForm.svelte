@@ -6,6 +6,7 @@
   import QuickDateSelector from './QuickDateSelector.svelte';
   import { db, generateId, type TransactionType } from '$lib/db';
   import { closeTransactionSheet, addToast } from '$lib/state/ui.svelte';
+  import { APP_CONFIG } from '$lib/constants';
 
   let {
     transactionId = null
@@ -55,12 +56,12 @@
 
   async function handleSave() {
     if (!amount || amount <= 0) {
-      addToast('Please enter a valid amount greater than 0.', 'error', 5000);
+      addToast('Please enter a valid amount greater than 0.', 'error', APP_CONFIG.toast.errorDurationMs);
       return;
     }
     
     if (!selectedCategoryId) {
-      addToast('Please select a category.', 'error', 5000);
+      addToast('Please select a category.', 'error', APP_CONFIG.toast.errorDurationMs);
       return;
     }
 
