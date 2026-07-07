@@ -110,15 +110,15 @@
 </script>
 
 <div class="flex flex-col gap-6 pt-2">
-  <div class="flex gap-2 p-1 bg-surface dark:bg-surface-dark rounded-xl">
+  <div class="flex gap-2 p-1 bg-surface-dark/5 dark:bg-surface-light/5 rounded-xl">
     <button 
-      class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {type === 'expense' ? 'bg-background dark:bg-background-dark shadow-sm text-text-light dark:text-text-dark' : 'text-text-light/60 dark:text-text-dark/60 hover:text-text-light dark:hover:text-text-dark'}"
+      class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {type === 'expense' ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-text-light dark:text-text-dark' : 'text-text-light/60 dark:text-text-dark/60 hover:text-text-light dark:hover:text-text-dark'}"
       onclick={() => type = 'expense'}
     >
       Expense
     </button>
     <button 
-      class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {type === 'income' ? 'bg-background dark:bg-background-dark shadow-sm text-text-light dark:text-text-dark' : 'text-text-light/60 dark:text-text-dark/60 hover:text-text-light dark:hover:text-text-dark'}"
+      class="flex-1 py-2 text-sm font-medium rounded-lg transition-colors {type === 'income' ? 'bg-surface-light dark:bg-surface-dark shadow-sm text-text-light dark:text-text-dark' : 'text-text-light/60 dark:text-text-dark/60 hover:text-text-light dark:hover:text-text-dark'}"
       onclick={() => type = 'income'}
     >
       Income
