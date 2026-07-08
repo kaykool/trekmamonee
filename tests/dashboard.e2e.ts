@@ -16,8 +16,8 @@ async function addTransaction(
 		.getByRole('button', { name: options.type === 'expense' ? 'Expense' : 'Income', exact: true })
 		.click();
 	if (options.type === 'income') await page.waitForTimeout(300);
-	await page.fill('input[type="number"]', options.amount);
-	await page.fill('input[type="text"]', options.name);
+	await page.fill('input[inputmode="numeric"]', options.amount);
+	await page.fill('input[type="text"]:not([inputmode="numeric"])', options.name);
 	// Wait for categories to load from Dexie, then click the first one.
 	// Categories are div[role="button"] inside a grid-cols-4 container.
 	const firstCategory = page.locator('.grid-cols-4 [role="button"]').first();

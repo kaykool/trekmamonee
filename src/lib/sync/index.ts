@@ -2,6 +2,8 @@ import { db } from '$lib/db';
 import { syncStore } from '$lib/stores/sync.svelte';
 
 export async function backupToCloud() {
+	if (!syncStore.cloudPassword) return false;
+	
 	try {
 		const categories = await db.categories.toArray();
 		const transactions = await db.transactions.toArray();
@@ -12,6 +14,7 @@ export async function backupToCloud() {
 				'Content-Type': 'application/json',
 				'x-api-key': syncStore.cloudPassword
 			},
+			keepalive: true,
 			body: JSON.stringify({
 				data: {
 					categories,

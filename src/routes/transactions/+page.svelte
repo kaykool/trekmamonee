@@ -2,24 +2,25 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import TransactionList from '$lib/components/transactions/TransactionList.svelte';
+	import MonthSelector from '$lib/components/dashboard/MonthSelector.svelte';
 	import { db, type Transaction, type Category } from '$lib/db';
 	import { liveQuery } from 'dexie';
 	import { openEditTransaction, openConfirmDialog } from '$lib/state/ui.svelte';
+	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 
 	let typeFilter = $state('all');
 
 	// Date State for Pagination
-	let currentDate = $state(new Date());
 	let displayMonth = $derived(
-		currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+		globalDateState.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 	);
 
 	function prevMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() - 1, 1);
 	}
 
 	function nextMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() + 1, 1);
 	}
 
 	let transactions = $state<Transaction[]>([]);
@@ -39,8 +40,8 @@
 	$effect(() => {
 		// Read state synchronously so Svelte 5 tracks it as a dependency for this effect
 		const currentFilter = typeFilter;
-		const year = currentDate.getFullYear();
-		const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+		const year = globalDateState.currentDate.getFullYear();
+		const month = (globalDateState.currentDate.getMonth() + 1).toString().padStart(2, '0');
 		const monthPrefix = `${year}-${month}`;
 
 		const sub = liveQuery(async () => {
@@ -96,45 +97,7 @@
 
 <div class="flex flex-col gap-6">
 	<!-- Month Selector -->
-	<div
-		class="flex items-center justify-between bg-surface-light dark:bg-surface-dark p-2 rounded-2xl shadow-sm"
-	>
-		<button
-			class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-surface-dark/5 dark:hover:bg-surface-light/10 text-text-light/60 hover:text-text-light dark:text-text-dark/60 dark:hover:text-text-dark"
-			onclick={prevMonth}
-			aria-label="Previous month"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-5 w-5"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg
-			>
-		</button>
-
-		<span class="text-base font-semibold text-text-light dark:text-text-dark">{displayMonth}</span>
-
-		<button
-			class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-surface-dark/5 dark:hover:bg-surface-light/10 text-text-light/60 hover:text-text-light dark:text-text-dark/60 dark:hover:text-text-dark"
-			onclick={nextMonth}
-			aria-label="Next month"
-		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-5 w-5"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg
-			>
-		</button>
-	</div>
+	<MonthSelector {displayMonth} onprev={prevMonth} onnext={nextMonth} ontoday={resetToToday} />
 
 	<div class="flex gap-2">
 		<Select

@@ -13,12 +13,19 @@
 	} from 'chart.js';
 	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
 	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
+	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
 
 	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 	let view = $state<'weekly' | 'monthly'>('weekly');
-	let currentDate = new SvelteDate();
+
+	function getLocalDateString(date: Date) {
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
 
 	function getWeekRange(date: Date) {
 		const current = new SvelteDate(date);
@@ -36,7 +43,7 @@
 
 	let dateLabel = $derived.by(() => {
 		if (view === 'weekly') {
-			const { start, end } = getWeekRange(currentDate);
+			const { start, end } = getWeekRange(globalDateState.currentDate);
 			const options: Intl.DateTimeFormatOptions = {
 				month: 'short',
 				day: 'numeric',
@@ -44,24 +51,28 @@
 			};
 			return `${start.toLocaleDateString('default', options)} - ${end.toLocaleDateString('default', options)}`;
 		} else {
-			return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+			return globalDateState.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 		}
 	});
 
 	function prev() {
+		const d = new SvelteDate(globalDateState.currentDate);
 		if (view === 'weekly') {
-			currentDate.setDate(currentDate.getDate() - 7);
+			d.setDate(d.getDate() - 7);
 		} else {
-			currentDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+			d.setFullYear(d.getFullYear(), d.getMonth() - 1, 1);
 		}
+		globalDateState.currentDate = d;
 	}
 
 	function next() {
+		const d = new SvelteDate(globalDateState.currentDate);
 		if (view === 'weekly') {
-			currentDate.setDate(currentDate.getDate() + 7);
+			d.setDate(d.getDate() + 7);
 		} else {
-			currentDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+			d.setFullYear(d.getFullYear(), d.getMonth() + 1, 1);
 		}
+		globalDateState.currentDate = d;
 	}
 
 	let summary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
@@ -70,15 +81,15 @@
 	// Reactive subscription to Dexie data based on view & date
 	$effect(() => {
 		const currentView = view;
-		const dateObj = currentDate;
+		const dateObj = globalDateState.currentDate;
 
 		const sub = liveQuery(async () => {
 			let transactions: Transaction[];
 
 			if (currentView === 'weekly') {
 				const { start, end } = getWeekRange(dateObj);
-				const startStr = start.toISOString().split('T')[0];
-				const endStr = end.toISOString().split('T')[0];
+				const startStr = getLocalDateString(start);
+				const endStr = getLocalDateString(end);
 				transactions = await db.transactions
 					.where('date')
 					.between(startStr, endStr, true, true)
@@ -238,7 +249,7 @@
 
 	<!-- Date Navigation -->
 	<div class="flex items-center justify-between">
-		<Button variant="ghost" size="icon" onclick={prev}>
+		<Button variant="ghost" size="icon" onclick={prev} aria-label="Previous Period">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="20"
@@ -251,8 +262,16 @@
 				stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
 			>
 		</Button>
-		<span class="font-semibold text-text-light dark:text-text-dark">{dateLabel}</span>
-		<Button variant="ghost" size="icon" onclick={next}>
+		<div class="flex flex-col items-center">
+			<span class="font-semibold text-text-light dark:text-text-dark">{dateLabel}</span>
+			<button
+				class="mt-1 rounded-full bg-primary/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 active:scale-95"
+				onclick={resetToToday}
+			>
+				Today
+			</button>
+		</div>
+		<Button variant="ghost" size="icon" onclick={next} aria-label="Next Period">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="20"

@@ -12,18 +12,41 @@
 	import ReloadPrompt from '$lib/components/pwa/ReloadPrompt.svelte';
 	import { uiState, closeTransactionSheet, closeConfirmDialog } from '$lib/state/ui.svelte';
 	import { pinStore } from '$lib/stores/pin.svelte';
+	import { syncStore } from '$lib/stores/sync.svelte';
+	import { backupToCloud } from '$lib/sync';
 	import '$lib/db/seed';
 
 	let { children } = $props();
 
+	let autosaveTimeout: ReturnType<typeof setTimeout>;
+
+	$effect(() => {
+		if (syncStore.hasUnsyncedChanges && syncStore.cloudPassword) {
+			clearTimeout(autosaveTimeout);
+			autosaveTimeout = setTimeout(() => {
+				backupToCloud().catch(console.error);
+			}, 5000); // Autosave 5 seconds after the last change
+		}
+	});
+
 	function handleVisibilityChange() {
 		if (document.visibilityState === 'hidden') {
 			pinStore.lock();
+			if (syncStore.hasUnsyncedChanges && syncStore.cloudPassword) {
+				backupToCloud().catch(console.error);
+			}
+		}
+	}
+
+	function handleBeforeUnload() {
+		if (syncStore.hasUnsyncedChanges && syncStore.cloudPassword) {
+			backupToCloud().catch(console.error);
 		}
 	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:window onbeforeunload={handleBeforeUnload} />
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 
 <PinLock mode="verify">

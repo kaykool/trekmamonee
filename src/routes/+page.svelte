@@ -15,18 +15,18 @@
 		type CategoryTotal,
 		type RecentTransaction
 	} from '$lib/db/queries';
+	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 
-	let currentDate = $state(new Date());
 	let displayMonth = $derived(
-		currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
+		globalDateState.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 	);
 
 	function prevMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() - 1, 1);
 	}
 
 	function nextMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() + 1, 1);
 	}
 
 	let monthSummary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
@@ -39,8 +39,8 @@
 
 	// Reactive subscription to Dexie data
 	$effect(() => {
-		const year = currentDate.getFullYear();
-		const month = currentDate.getMonth() + 1;
+		const year = globalDateState.currentDate.getFullYear();
+		const month = globalDateState.currentDate.getMonth() + 1;
 
 		const sub = liveQuery(async () => {
 			const [summary, breakdown, recent] = await Promise.all([
@@ -97,7 +97,7 @@
 
 <div class="flex flex-col gap-6">
 	<!-- Month Selector -->
-	<MonthSelector {displayMonth} onprev={prevMonth} onnext={nextMonth} />
+	<MonthSelector {displayMonth} onprev={prevMonth} onnext={nextMonth} ontoday={resetToToday} />
 
 	<!-- Summary Cards -->
 	<IncomeExpenseSummary {monthSummary} />

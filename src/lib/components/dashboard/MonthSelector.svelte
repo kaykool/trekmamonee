@@ -3,11 +3,13 @@
 	let {
 		displayMonth,
 		onprev,
-		onnext
+		onnext,
+		ontoday
 	}: {
 		displayMonth: string;
 		onprev: () => void;
 		onnext: () => void;
+		ontoday?: () => void;
 	} = $props();
 </script>
 
@@ -31,14 +33,22 @@
 		>
 	</button>
 
-	<div class="relative flex-1 flex justify-center items-center h-10 overflow-hidden">
+	<div class="relative flex-1 flex flex-col justify-center items-center h-12 overflow-hidden">
 		{#key displayMonth}
 			<span
 				in:fade={{ duration: 150 }}
-				class="absolute text-base font-semibold text-text-light dark:text-text-dark whitespace-nowrap"
+				class="text-base font-semibold text-text-light dark:text-text-dark whitespace-nowrap"
 				>{displayMonth}</span
 			>
 		{/key}
+		{#if ontoday}
+			<button
+				class="mt-1 rounded-full bg-primary/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 active:scale-95"
+				onclick={ontoday}
+			>
+				Today
+			</button>
+		{/if}
 	</div>
 
 	<button
