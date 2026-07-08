@@ -8,7 +8,10 @@ export async function backupToCloud() {
 
 		const response = await fetch('/api/sync', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
+			headers: { 
+				'Content-Type': 'application/json',
+				'x-api-key': syncStore.cloudPassword
+			},
 			body: JSON.stringify({
 				data: {
 					categories,
@@ -33,7 +36,11 @@ export async function backupToCloud() {
 
 export async function restoreFromCloud() {
 	try {
-		const response = await fetch('/api/sync');
+		const response = await fetch('/api/sync', {
+			headers: {
+				'x-api-key': syncStore.cloudPassword
+			}
+		});
 		const result = await response.json();
 		
 		if (!response.ok || !result.success) {

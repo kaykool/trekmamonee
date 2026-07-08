@@ -3,12 +3,19 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { db, type Transaction } from '$lib/db';
 	import { liveQuery } from 'dexie';
-	import { Chart, registerables } from 'chart.js';
+	import {
+		Chart,
+		BarController,
+		BarElement,
+		CategoryScale,
+		LinearScale,
+		Tooltip
+	} from 'chart.js';
 	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
 	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
 
-	Chart.register(...registerables);
+	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
 	let view = $state<'weekly' | 'monthly'>('weekly');
 	let currentDate = new SvelteDate();

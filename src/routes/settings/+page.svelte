@@ -131,6 +131,19 @@
 				</Button>
 			</div>
 		</div>
+		
+		<div class="h-px w-full bg-surface-dark/10 dark:bg-surface-light/10 my-2"></div>
+		
+		<div class="flex flex-col gap-2">
+			<span class="text-sm font-medium text-text-light dark:text-text-dark">Cloud Sync Password</span>
+			<input 
+				type="password" 
+				bind:value={syncStore.cloudPassword}
+				oninput={(e) => syncStore.setCloudPassword(e.currentTarget.value)}
+				placeholder="Enter API Key from .env"
+				class="w-full rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 outline-none focus:ring-1 focus:ring-primary"
+			/>
+		</div>
 	</Card>
 
 	<Card class="flex flex-col gap-4">

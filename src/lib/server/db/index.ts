@@ -10,7 +10,7 @@ const client = mysql.createPool({
 	enableKeepAlive: true,
 	keepAliveInitialDelay: 0,
 	waitForConnections: true,
-	connectionLimit: 10,
+	connectionLimit: 3,
 	queueLimit: 0
 });
 

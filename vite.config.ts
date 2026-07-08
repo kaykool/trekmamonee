@@ -22,7 +22,6 @@ export default defineConfig({
 		}),
 		SvelteKitPWA({
 			srcDir: './src',
-			mode: 'development',
 			strategies: 'generateSW',
 			manifest: {
 				short_name: 'Trekmamonee',

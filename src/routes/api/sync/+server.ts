@@ -1,10 +1,15 @@
 import { json } from '@sveltejs/kit';
 import { db, withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
+import { env } from '$env/dynamic/private';
 import type { RequestEvent } from './$types';
 
-export async function GET() {
+export async function GET({ request }: RequestEvent) {
 	try {
+		const clientKey = request.headers.get('x-api-key');
+		if (!clientKey || clientKey !== env.CLOUD_SYNC_PASSWORD) {
+			return json({ success: false, error: 'Unauthorized' }, { status: 401 });
+		}
 		const { allCategories, allTransactions } = await withRetry(async () => {
 			const cats = await db.select().from(categories);
 			const txs = await db.select().from(transactions);
@@ -26,6 +31,11 @@ export async function GET() {
 
 export async function POST({ request }: RequestEvent) {
 	try {
+		const clientKey = request.headers.get('x-api-key');
+		if (!clientKey || clientKey !== env.CLOUD_SYNC_PASSWORD) {
+			return json({ success: false, error: 'Unauthorized' }, { status: 401 });
+		}
+
 		const payload = await request.json();
 		const incomingCategories = payload.data?.categories || [];
 		const incomingTransactions = payload.data?.transactions || [];

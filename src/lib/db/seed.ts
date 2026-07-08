@@ -1,6 +1,7 @@
 import { db, generateId, type Category } from './index';
+import { syncStore } from '$lib/stores/sync.svelte';
 
-const defaultCategories: Omit<Category, 'id' | 'createdAt'>[] = [
+const defaultCategories: Omit<Category, 'id' | 'createdAt' | 'sortOrder'>[] = [
 	// Expenses
 	{ name: 'Food & Dining', icon: '🍽️', color: 'bg-orange-500', type: 'expense', isDefault: true },
 	{ name: 'Transportation', icon: '🚗', color: 'bg-blue-500', type: 'expense', isDefault: true },
@@ -21,14 +22,16 @@ export async function seedDefaultCategories() {
 	const count = await db.categories.count();
 
 	if (count === 0) {
-		const categoriesToInsert = defaultCategories.map((cat) => ({
+		const categoriesToInsert = defaultCategories.map((cat, index) => ({
 			...cat,
 			id: generateId(),
+			sortOrder: index,
 			createdAt: Date.now()
 		}));
 
 		await db.categories.bulkAdd(categoriesToInsert);
 		console.log('Seeded default categories');
+		syncStore.setUnsynced(false);
 	}
 }
 
