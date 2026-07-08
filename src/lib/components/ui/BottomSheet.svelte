@@ -32,7 +32,7 @@
 
 	<!-- Sheet -->
 	<div
-		class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full max-w-2xl mx-auto flex-col rounded-t-[2rem] bg-surface-light pt-6 shadow-xl dark:bg-surface-dark pb-safe"
+		class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] w-full max-w-2xl mx-auto flex-col rounded-t-4xl bg-surface-light pt-6 shadow-xl dark:bg-surface-dark pb-safe"
 		transition:fly={{ y: '100%', duration: 300, easing: cubicOut }}
 	>
 		<!-- Handle -->

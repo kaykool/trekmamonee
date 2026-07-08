@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Select from '$lib/components/ui/Select.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import TransactionList from '$lib/components/transactions/TransactionList.svelte';
 	import { db, type Transaction, type Category } from '$lib/db';

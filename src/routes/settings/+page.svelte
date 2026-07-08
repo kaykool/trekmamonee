@@ -6,12 +6,55 @@
 	import PinLock from '$lib/components/auth/PinLock.svelte';
 	import { theme } from '$lib/stores/theme';
 	import { pinStore } from '$lib/stores/pin.svelte';
+	import { openConfirmDialog } from '$lib/state/ui.svelte';
+	import { backupToCloud, restoreFromCloud, getLastSyncTime } from '$lib/sync';
+	import { onMount } from 'svelte';
 
 	let isCategorySheetOpen = $state(false);
 	let pinMode = $state<'none' | 'setup' | 'remove'>('none');
 
 	let dummyExpenseId = $state('');
 	let dummyIncomeId = $state('');
+
+	let lastSync = $state<string | null>(null);
+	let isSyncing = $state(false);
+
+	onMount(() => {
+		lastSync = getLastSyncTime();
+	});
+
+	async function handleBackup() {
+		try {
+			isSyncing = true;
+			await backupToCloud();
+			lastSync = getLastSyncTime();
+		} catch (error) {
+			console.error(error);
+		} finally {
+			isSyncing = false;
+		}
+	}
+
+	async function handleRestore() {
+		openConfirmDialog({
+			title: 'Restore from Cloud',
+			description: 'This will overwrite all local transactions and categories with the cloud backup. Are you sure?',
+			confirmText: 'Restore',
+			isDestructive: true,
+			onconfirm: async () => {
+				try {
+					isSyncing = true;
+					await restoreFromCloud();
+					lastSync = getLastSyncTime();
+					window.location.reload();
+				} catch (error) {
+					console.error(error);
+				} finally {
+					isSyncing = false;
+				}
+			}
+		});
+	}
 </script>
 
 <svelte:head>
@@ -20,13 +63,20 @@
 
 <div class="flex flex-col gap-4">
 	<Card class="flex flex-col gap-4">
-		<h2 class="font-semibold text-text-light dark:text-text-dark">Data & Sync</h2>
+		<h2 class="font-semibold text-text-light dark:text-text-dark">Cloud Sync</h2>
 		<div class="flex items-center justify-between">
 			<div class="flex flex-col">
-				<span class="text-sm font-medium text-text-light dark:text-text-dark">Last synced</span>
-				<span class="text-xs text-text-light/60 dark:text-text-dark/60">Never</span>
+				<span class="text-sm font-medium text-text-light dark:text-text-dark">Last backup</span>
+				<span class="text-xs text-text-light/60 dark:text-text-dark/60">
+					{lastSync ? new Date(lastSync).toLocaleString() : 'Never'}
+				</span>
 			</div>
-			<Button variant="secondary" size="sm">Sync Now</Button>
+			<div class="flex gap-2">
+				<Button variant="secondary" size="sm" onclick={handleRestore} disabled={isSyncing}>Restore</Button>
+				<Button size="sm" onclick={handleBackup} disabled={isSyncing}>
+					{isSyncing ? 'Syncing...' : 'Backup'}
+				</Button>
+			</div>
 		</div>
 	</Card>
 

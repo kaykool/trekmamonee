@@ -25,18 +25,23 @@ ALWAYS use this exact template. Be concise — 1–2 sentences max per bullet. N
 # 🔍 UI/UX Audit Report
 
 ## 🧠 Conceptual UX Analysis
-*What is the user trying to do? Where does the flow break down? What causes confusion or frustration?*
+
+_What is the user trying to do? Where does the flow break down? What causes confusion or frustration?_
 
 ## 🎨 Visual UI Review
-*How does it look? Point out hierarchy problems, inconsistent spacing, contrast issues, or anything that breaks the sense of polish.*
+
+_How does it look? Point out hierarchy problems, inconsistent spacing, contrast issues, or anything that breaks the sense of polish._
 
 ## 🛠️ Recommendations
 
 ### 🚨 Critical
-*Things that actively harm usability or accessibility. Explain what to change and why it matters to the user.*
+
+_Things that actively harm usability or accessibility. Explain what to change and why it matters to the user._
 
 ### 🚧 Minor
-*Small friction points that are worth fixing. Explain the impact on user experience.*
+
+_Small friction points that are worth fixing. Explain the impact on user experience._
 
 ### ✨ Polish
-*Opportunities to elevate the feel of the interface. Explain what impression the change would create.*
+
+_Opportunities to elevate the feel of the interface. Explain what impression the change would create._

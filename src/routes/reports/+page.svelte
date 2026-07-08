@@ -7,7 +7,6 @@
 	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
 	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
-	import { theme } from '$lib/stores/theme';
 
 	Chart.register(...registerables);
 
@@ -133,7 +132,6 @@
 	let chartInstance: Chart | null = null;
 
 	$effect(() => {
-		const currentTheme = $theme;
 		const isDark = document.documentElement.classList.contains('dark');
 		const textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
 		const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
@@ -268,27 +266,19 @@
 			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>INCOME</span
 			>
-			<span class="text-lg font-bold text-primary"
-				>{formatIDR(summary.totalIncome)}</span
-			>
+			<span class="text-lg font-bold text-primary">{formatIDR(summary.totalIncome)}</span>
 		</Card>
 		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
 			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>EXPENSE</span
 			>
-			<span class="text-lg font-bold text-danger"
-				>{formatIDR(summary.totalExpense)}</span
-			>
+			<span class="text-lg font-bold text-danger">{formatIDR(summary.totalExpense)}</span>
 		</Card>
 		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
 			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>SAVINGS</span
 			>
-			<span
-				class="text-lg font-bold {summary.balance >= 0
-					? 'text-primary'
-					: 'text-danger'}"
-			>
+			<span class="text-lg font-bold {summary.balance >= 0 ? 'text-primary' : 'text-danger'}">
 				{formatIDR(summary.balance)}
 			</span>
 		</Card>

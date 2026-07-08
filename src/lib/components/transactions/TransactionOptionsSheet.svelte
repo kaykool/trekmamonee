@@ -16,18 +16,14 @@
 		ondelete: () => void;
 	} = $props();
 
-	let formattedAmount = $derived(
-		transaction ? formatIDR(transaction.amount) : ''
-	);
+	let formattedAmount = $derived(transaction ? formatIDR(transaction.amount) : '');
 </script>
 
 <BottomSheet bind:isOpen title="Transaction Options">
 	{#if transaction}
 		<div class="mb-6 flex flex-col items-center gap-2 text-center">
 			<span
-				class="text-3xl font-bold {transaction.type === 'expense'
-					? 'text-danger'
-					: 'text-primary'}"
+				class="text-3xl font-bold {transaction.type === 'expense' ? 'text-danger' : 'text-primary'}"
 			>
 				{transaction.type === 'expense' ? '-' : '+'}{formattedAmount}
 			</span>

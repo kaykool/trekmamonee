@@ -9,6 +9,7 @@
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import PinLock from '$lib/components/auth/PinLock.svelte';
+	import ReloadPrompt from '$lib/components/pwa/ReloadPrompt.svelte';
 	import { uiState, closeTransactionSheet, closeConfirmDialog } from '$lib/state/ui.svelte';
 	import { pinStore } from '$lib/stores/pin.svelte';
 	import '$lib/db/seed';
@@ -60,6 +61,7 @@
 			oncancel={closeConfirmDialog}
 		/>
 
+		<ReloadPrompt />
 		<Toast />
 	</div>
 </PinLock>

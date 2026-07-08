@@ -5,7 +5,9 @@
 			"id": 0,
 			"prompt": "Please run a UX audit on this transaction form component. Focus on how we handle inputs and error states.",
 			"expected_output": "A structured UX/UI report identifying form usability issues and providing Tailwind fixes.",
-			"files": ["d:/ProjectCoding/New Era/expense-tracker/src/lib/components/transactions/TransactionForm.svelte"]
+			"files": [
+				"d:/ProjectCoding/New Era/expense-tracker/src/lib/components/transactions/TransactionForm.svelte"
+			]
 		},
 		{
 			"id": 1,

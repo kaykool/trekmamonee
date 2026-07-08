@@ -180,7 +180,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 
 		// Wait for the Confirm Dialog to appear and click Delete there
 		const confirmModalDeleteBtn = page.locator(
-			'.fixed.inset-0.z-\\[60\\] button:has-text("Delete")'
+			'.fixed.inset-0.z-60 button:has-text("Delete")'
 		);
 		await confirmModalDeleteBtn.click();
 

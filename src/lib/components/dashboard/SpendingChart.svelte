@@ -3,7 +3,6 @@
 	import { Chart, registerables } from 'chart.js';
 	import type { CategoryTotal } from '$lib/db/queries';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
-	import { theme } from '$lib/stores/theme';
 
 	Chart.register(...registerables);
 
@@ -19,9 +18,8 @@
 	let chartInstance: Chart | null = null;
 
 	$effect(() => {
-		const currentTheme = $theme;
 		const isDark = document.documentElement.classList.contains('dark');
-		
+
 		if (chartCanvas && categoryBreakdown.length > 0) {
 			if (chartInstance) {
 				chartInstance.destroy();
@@ -78,11 +76,28 @@
 
 	{#if categoryBreakdown.length === 0}
 		<div class="flex flex-col items-center justify-center py-12 gap-2 text-center">
-			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark/5 dark:bg-surface-light/5 text-text-light/40 dark:text-text-dark/40 mb-1">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+			<div
+				class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark/5 dark:bg-surface-light/5 text-text-light/40 dark:text-text-dark/40 mb-1"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-6 w-6"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"
+					></path></svg
+				>
 			</div>
-			<span class="text-text-light/50 dark:text-text-dark/50 font-medium">No expenses this month</span>
-			<span class="text-xs text-text-light/40 dark:text-text-dark/40">Your spending breakdown will appear here</span>
+			<span class="text-text-light/50 dark:text-text-dark/50 font-medium"
+				>No expenses this month</span
+			>
+			<span class="text-xs text-text-light/40 dark:text-text-dark/40"
+				>Your spending breakdown will appear here</span
+			>
 		</div>
 	{:else}
 		<div class="relative flex items-center justify-center h-48 md:h-56">
@@ -107,7 +122,9 @@
 							<div
 								class="flex h-8 w-8 items-center justify-center rounded-full {item.color} text-base text-white leading-none"
 							>
-								<span class="leading-none flex items-center justify-center h-full w-full">{item.icon}</span>
+								<span class="leading-none flex items-center justify-center h-full w-full"
+									>{item.icon}</span
+								>
 							</div>
 							<span class="text-sm font-semibold text-text-light dark:text-text-dark"
 								>{item.categoryName}</span

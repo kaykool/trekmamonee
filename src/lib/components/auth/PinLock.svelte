@@ -103,14 +103,16 @@
 
 {#if mode === 'verify' && pinStore.hasPin && pinStore.isLocked}
 	<div
-		class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark"
+		class="fixed inset-0 z-100 flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark"
 		in:fade
 	>
 		<div class="flex w-full flex-col items-center gap-6 px-8" style="max-width: 20rem;">
 			<!-- Lock icon -->
 			<div class="mb-2 flex flex-col items-center gap-3">
 				<div class="relative flex h-20 w-20 items-center justify-center">
-					<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-primary/5 blur-lg"></div>
+					<div
+						class="absolute inset-0 rounded-full bg-linear-to-tr from-primary/20 to-primary/5 blur-lg"
+					></div>
 					<div
 						class="relative flex h-16 w-16 items-center justify-center rounded-full bg-surface-light dark:bg-surface-dark text-primary shadow-sm ring-1 ring-surface-dark/5 dark:ring-surface-light/5"
 					>
@@ -134,7 +136,9 @@
 					<h1 class="text-2xl font-bold tracking-tight text-text-light dark:text-text-dark">
 						Trekmamonee
 					</h1>
-					<p class="text-sm font-medium text-text-light/50 dark:text-text-dark/50">Enter PIN to unlock</p>
+					<p class="text-sm font-medium text-text-light/50 dark:text-text-dark/50">
+						Enter PIN to unlock
+					</p>
 				</div>
 			</div>
 
@@ -162,7 +166,7 @@
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as num (num)}
 					<button
 						aria-label="Digit {num}"
-						class="pin-key flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full text-2xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
+						class="pin-key flex h-18 w-18 items-center justify-center rounded-full text-3xl font-medium text-text-light transition-colors hover:bg-surface-dark/10 focus:outline-none dark:bg-surface-light/5 dark:text-text-dark dark:hover:bg-surface-light/10"
 						onclick={() => handleInput(num.toString())}
 					>
 						{num}
@@ -171,14 +175,14 @@
 				<div></div>
 				<button
 					aria-label="Digit 0"
-					class="pin-key flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full text-2xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
+					class="pin-key flex h-18 w-18 items-center justify-center rounded-full text-3xl font-medium text-text-light transition-colors hover:bg-surface-dark/10 focus:outline-none dark:bg-surface-light/5 dark:text-text-dark dark:hover:bg-surface-light/10"
 					onclick={() => handleInput('0')}
 				>
 					0
 				</button>
 				<button
 					aria-label="Backspace"
-					class="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full text-text-light/60 transition-all active:scale-90 dark:text-text-dark/60"
+					class="flex h-18 w-18 items-center justify-center rounded-full text-text-light/60 transition-all active:scale-90 dark:text-text-dark/60"
 					onclick={handleBackspace}
 				>
 					<svg

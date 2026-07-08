@@ -4,7 +4,6 @@
 	import SpendingChart from '$lib/components/dashboard/SpendingChart.svelte';
 	import RecentTransactions from '$lib/components/dashboard/RecentTransactions.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 	import { db, type Transaction } from '$lib/db';
 	import { liveQuery } from 'dexie';
 	import { openEditTransaction, openConfirmDialog } from '$lib/state/ui.svelte';
@@ -16,7 +15,6 @@
 		type CategoryTotal,
 		type RecentTransaction
 	} from '$lib/db/queries';
-	import { formatIDR } from '$lib/utils';
 
 	let currentDate = $state(new Date());
 	let displayMonth = $derived(

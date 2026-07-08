@@ -13,3 +13,10 @@ When executing any shell command using the `run_command` tool, you MUST explicit
 - **Example (Correct)**: `rtk npm run dev`
 - **Example (Incorrect)**: `npx playwright test`
 - **Example (Correct)**: `rtk npx playwright test`
+
+### PowerShell Command Chaining
+
+When executing shell commands using the `run_command` tool on Windows/PowerShell, do NOT use `&&` to chain multiple commands. Use the semicolon `;` separator instead.
+
+- **Example (Incorrect)**: `rtk npm run format && rtk npm run lint`
+- **Example (Correct)**: `rtk npm run format ; rtk npm run lint`

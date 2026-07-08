@@ -1,0 +1,23 @@
+{
+	"skill_name": "cpanel-security-audit",
+	"evals": [
+		{
+			"id": 1,
+			"prompt": "Can you check if my SvelteKit app is secure enough to deploy to cPanel? I just finished setting up Drizzle and MySQL.",
+			"expected_output": "A security audit report covering env variables, SvelteKit XSS, Drizzle SQLi, and cPanel specifics.",
+			"files": []
+		},
+		{
+			"id": 2,
+			"prompt": "Run a security audit on my backend. I want to make sure my database credentials and API routes are safe.",
+			"expected_output": "A security audit focusing on backend vulnerabilities, .env location, and API auth checks.",
+			"files": []
+		},
+		{
+			"id": 3,
+			"prompt": "Is my app ready for production on cPanel? Please do a quick check.",
+			"expected_output": "A full report checking deployment safety, static file exposure, and npm audit results.",
+			"files": []
+		}
+	]
+}

@@ -33,7 +33,11 @@
 
 	<div class="relative flex-1 flex justify-center items-center h-10 overflow-hidden">
 		{#key displayMonth}
-			<span in:fade={{ duration: 150 }} class="absolute text-base font-semibold text-text-light dark:text-text-dark whitespace-nowrap">{displayMonth}</span>
+			<span
+				in:fade={{ duration: 150 }}
+				class="absolute text-base font-semibold text-text-light dark:text-text-dark whitespace-nowrap"
+				>{displayMonth}</span
+			>
 		{/key}
 	</div>
 
