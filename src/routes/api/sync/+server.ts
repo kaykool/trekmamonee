@@ -2,14 +2,22 @@ import { json } from '@sveltejs/kit';
 import { db, withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
+import { checkRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
 import type { RequestEvent } from './$types';
 
-export async function GET({ request }: RequestEvent) {
+export async function GET({ request, getClientAddress }: RequestEvent) {
 	try {
+		const ip = getClientAddress();
+		if (!checkRateLimit(ip)) {
+			return json({ success: false, error: 'Too many failed attempts. Try again in 15 minutes.' }, { status: 429 });
+		}
+
 		const clientKey = request.headers.get('x-api-key');
 		if (!clientKey || clientKey !== env.CLOUD_SYNC_PASSWORD) {
+			recordFailedAttempt(ip);
 			return json({ success: false, error: 'Unauthorized' }, { status: 401 });
 		}
+		clearFailedAttempts(ip);
 		const { allCategories, allTransactions } = await withRetry(async () => {
 			const cats = await db.select().from(categories);
 			const txs = await db.select().from(transactions);
@@ -29,12 +37,19 @@ export async function GET({ request }: RequestEvent) {
 	}
 }
 
-export async function POST({ request }: RequestEvent) {
+export async function POST({ request, getClientAddress }: RequestEvent) {
 	try {
+		const ip = getClientAddress();
+		if (!checkRateLimit(ip)) {
+			return json({ success: false, error: 'Too many failed attempts. Try again in 15 minutes.' }, { status: 429 });
+		}
+
 		const clientKey = request.headers.get('x-api-key');
 		if (!clientKey || clientKey !== env.CLOUD_SYNC_PASSWORD) {
+			recordFailedAttempt(ip);
 			return json({ success: false, error: 'Unauthorized' }, { status: 401 });
 		}
+		clearFailedAttempts(ip);
 
 		const payload = await request.json();
 		const incomingCategories = payload.data?.categories || [];

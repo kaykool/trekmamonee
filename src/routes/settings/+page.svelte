@@ -7,7 +7,7 @@
 	import { theme } from '$lib/stores/theme';
 	import { pinStore } from '$lib/stores/pin.svelte';
 	import { openConfirmDialog, addToast } from '$lib/state/ui.svelte';
-	import { backupToCloud, restoreFromCloud, getLastSyncTime } from '$lib/sync';
+	import { backupToCloud, restoreFromCloud, getLastSyncTime, verifyCloudPassword } from '$lib/sync';
 	import { syncStore } from '$lib/stores/sync.svelte';
 	import { onMount } from 'svelte';
 
@@ -19,9 +19,14 @@
 
 	let lastSync = $state<string | null>(null);
 	let syncAction = $state<'backup' | 'restore' | null>(null);
+	
+	let tempPassword = $state('');
+	let isEditingPassword = $state(false);
+	let isVerifying = $state(false);
 
 	onMount(() => {
 		lastSync = getLastSyncTime();
+		tempPassword = syncStore.cloudPassword;
 	});
 
 	function getRelativeTime(dateString: string) {
@@ -97,52 +102,105 @@
 <div class="flex flex-col gap-4">
 	<Card class="flex flex-col gap-4">
 		<h2 class="font-semibold text-text-light dark:text-text-dark">Cloud Sync</h2>
-		<div class="flex items-center justify-between">
-			<div class="flex flex-col">
-				<div class="flex items-center gap-2">
-					<span class="text-sm font-medium text-text-light dark:text-text-dark">Last backup</span>
-					{#if syncStore.hasUnsyncedChanges}
-						<span class="flex h-2 w-2 rounded-full bg-warning animate-pulse" title="Unsynced local changes"></span>
-					{/if}
+		{#if syncStore.cloudPassword}
+			<div class="flex items-center justify-between">
+				<div class="flex flex-col">
+					<div class="flex items-center gap-2">
+						<span class="text-sm font-medium text-text-light dark:text-text-dark">Last backup</span>
+						{#if syncStore.hasUnsyncedChanges}
+							<span class="flex h-2 w-2 rounded-full bg-warning animate-pulse" title="Unsynced local changes"></span>
+						{/if}
+					</div>
+					<span class="text-xs text-text-light/60 dark:text-text-dark/60">
+						{lastSync ? getRelativeTime(lastSync) : 'Never'}
+						{#if syncStore.hasUnsyncedChanges}
+							<span class="text-warning font-medium ml-1">(Unsynced changes)</span>
+						{/if}
+					</span>
 				</div>
-				<span class="text-xs text-text-light/60 dark:text-text-dark/60">
-					{lastSync ? getRelativeTime(lastSync) : 'Never'}
-					{#if syncStore.hasUnsyncedChanges}
-						<span class="text-warning font-medium ml-1">(Unsynced changes)</span>
-					{/if}
-				</span>
+				<div class="flex gap-2">
+					<Button variant="secondary" size="sm" onclick={handleRestore} disabled={syncAction !== null}>
+						{#if syncAction === 'restore'}
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							Restoring...
+						{:else}
+							Restore
+						{/if}
+					</Button>
+					<Button size="sm" onclick={handleBackup} disabled={syncAction !== null}>
+						{#if syncAction === 'backup'}
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							Backing up...
+						{:else}
+							Backup
+						{/if}
+					</Button>
+				</div>
 			</div>
-			<div class="flex gap-2">
-				<Button variant="secondary" size="sm" onclick={handleRestore} disabled={syncAction !== null}>
-					{#if syncAction === 'restore'}
-						<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-						Restoring...
-					{:else}
-						Restore
-					{/if}
-				</Button>
-				<Button size="sm" onclick={handleBackup} disabled={syncAction !== null}>
-					{#if syncAction === 'backup'}
-						<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-						Backing up...
-					{:else}
-						Backup
-					{/if}
-				</Button>
-			</div>
-		</div>
+			<div class="h-px w-full bg-surface-dark/10 dark:bg-surface-light/10 my-2"></div>
+		{/if}
 		
-		<div class="h-px w-full bg-surface-dark/10 dark:bg-surface-light/10 my-2"></div>
-		
-		<div class="flex flex-col gap-2">
+		<div class="flex flex-col gap-3">
 			<span class="text-sm font-medium text-text-light dark:text-text-dark">Cloud Sync Password</span>
-			<input 
-				type="password" 
-				bind:value={syncStore.cloudPassword}
-				oninput={(e) => syncStore.setCloudPassword(e.currentTarget.value)}
-				placeholder="Enter API Key from .env"
-				class="w-full rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 outline-none focus:ring-1 focus:ring-primary"
-			/>
+			
+			{#if syncStore.cloudPassword && !isEditingPassword}
+				<div class="flex items-center justify-between rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 p-3">
+					<div class="flex items-center gap-2">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+						<span class="text-sm font-medium text-primary">Configured</span>
+					</div>
+					<div class="flex gap-2">
+						<Button variant="secondary" size="sm" onclick={() => isEditingPassword = true}>Edit</Button>
+						<Button variant="secondary" size="sm" onclick={() => {
+							syncStore.setCloudPassword('');
+							addToast('API Key removed', 'info');
+						}}>Remove</Button>
+					</div>
+				</div>
+			{:else}
+				<div class="flex gap-2">
+					<input 
+						type="password" 
+						bind:value={tempPassword}
+						placeholder="Enter password from .env"
+						class="flex-1 rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 outline-none focus:ring-1 focus:ring-primary"
+					/>
+					<Button 
+						size="sm" 
+						disabled={isVerifying}
+						onclick={async () => {
+							if (!tempPassword) {
+								addToast('Please enter a password', 'warning');
+								return;
+							}
+							isVerifying = true;
+							const isValid = await verifyCloudPassword(tempPassword);
+							isVerifying = false;
+							
+							if (isValid) {
+								syncStore.setCloudPassword(tempPassword);
+								isEditingPassword = false;
+								addToast('Authentication verified and saved!', 'success');
+							} else {
+								addToast('Invalid password', 'error');
+							}
+						}}
+					>
+						{#if isVerifying}
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							Verifying...
+						{:else}
+							Save
+						{/if}
+					</Button>
+				</div>
+				{#if isEditingPassword && syncStore.cloudPassword}
+					<Button variant="ghost" size="sm" class="self-start text-xs -mt-1" onclick={() => {
+						isEditingPassword = false;
+						tempPassword = syncStore.cloudPassword;
+					}}>Cancel</Button>
+				{/if}
+			{/if}
 		</div>
 	</Card>
 

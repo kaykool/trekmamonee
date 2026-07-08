@@ -75,3 +75,20 @@ export async function restoreFromCloud() {
 export function getLastSyncTime(): string | null {
 	return localStorage.getItem('last_sync');
 }
+
+export async function verifyCloudPassword(password: string): Promise<boolean> {
+	try {
+		const response = await fetch('/api/sync/verify', {
+			method: 'POST',
+			headers: {
+				'x-api-key': password
+			}
+		});
+		
+		const result = await response.json();
+		return response.ok && result.success;
+	} catch (error) {
+		console.error('Verify error:', error);
+		return false;
+	}
+}
