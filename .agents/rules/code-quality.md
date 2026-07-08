@@ -27,4 +27,5 @@ When modifying code:
 Never sacrifice maintainability for cleverness.
 
 TypeScript Error Handling:
+
 - When encountering TypeScript errors like "No overload matches this call" or "undefined is not assignable" because a variable is typed as `Type | undefined` but being passed to a strictly typed parameter, resolve it by using a type assertion (e.g. `as string`) or an explicit `if` check, assuming you can guarantee the value will be present at runtime.

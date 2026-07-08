@@ -1,10 +1,10 @@
 import {
-  Chart,
-  DoughnutController,
-  ArcElement,
-  Tooltip,
-  Legend,
-  type ChartConfiguration,
+	Chart,
+	DoughnutController,
+	ArcElement,
+	Tooltip,
+	Legend,
+	type ChartConfiguration
 } from 'chart.js';
 import type { ActionReturn } from 'svelte/action';
 
@@ -21,18 +21,18 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
  * and destroys it on unmount.
  */
 export function chart(
-  canvas: HTMLCanvasElement,
-  config: ChartConfiguration
+	canvas: HTMLCanvasElement,
+	config: ChartConfiguration
 ): ActionReturn<ChartConfiguration> {
-  let instance = new Chart(canvas, config);
+	let instance = new Chart(canvas, config);
 
-  return {
-    update(newConfig: ChartConfiguration) {
-      instance.destroy();
-      instance = new Chart(canvas, newConfig);
-    },
-    destroy() {
-      instance.destroy();
-    },
-  };
+	return {
+		update(newConfig: ChartConfiguration) {
+			instance.destroy();
+			instance = new Chart(canvas, newConfig);
+		},
+		destroy() {
+			instance.destroy();
+		}
+	};
 }

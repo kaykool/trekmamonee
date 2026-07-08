@@ -10,46 +10,58 @@ Fix lint errors and contribute prevention tips back to the typescript-coding ski
 ## Workflow
 
 ### Step 1: Identify Lint Errors
+
 Run the lint check to see current errors:
+
 ```bash
 npm run lint:check
 ```
+
 Parse the output to identify:
+
 - Rule name (e.g., `noExplicitAny`, `useImportType`, `noUnusedVariables`)
 - File path and line number
 - Error message
 
 ### Step 2: Categorize the Error
+
 Determine if this is:
+
 - **Auto-fixable**: Biome can fix it with `--write`
 - **Manual fix required**: Requires code changes
 - **Pattern-based**: Represents a recurring anti-pattern worth documenting
 
 ### Step 3: Fix the Error
+
 For auto-fixable errors:
+
 ```bash
 npm run lint
 ```
+
 For manual fixes, apply the appropriate correction based on the rule:
 
-| Rule | Fix Pattern |
-| --- | --- |
-| `noExplicitAny` | Replace `any` with proper type, `unknown`, or generic |
-| `useImportType` | Change `import { Foo }` to `import type { Foo }` for type-only imports |
-| `useExportType` | Change `export { Foo }` to `export type { Foo }` for type-only exports |
-| `noUnusedVariables` | Remove the variable or use it |
-| `noUnusedImports` | Remove the import |
-| `useConst` | Change `let` to `const` for non-reassigned variables |
-| `noNonNullAssertion` | Use proper null checks, optional chaining, or `invariant` |
-| `noUselessTypeConstraint` | Remove redundant `extends unknown` or `extends any` |
+| Rule                      | Fix Pattern                                                            |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `noExplicitAny`           | Replace `any` with proper type, `unknown`, or generic                  |
+| `useImportType`           | Change `import { Foo }` to `import type { Foo }` for type-only imports |
+| `useExportType`           | Change `export { Foo }` to `export type { Foo }` for type-only exports |
+| `noUnusedVariables`       | Remove the variable or use it                                          |
+| `noUnusedImports`         | Remove the import                                                      |
+| `useConst`                | Change `let` to `const` for non-reassigned variables                   |
+| `noNonNullAssertion`      | Use proper null checks, optional chaining, or `invariant`              |
+| `noUselessTypeConstraint` | Remove redundant `extends unknown` or `extends any`                    |
 
 ### Step 4: Extract the Lesson
+
 For each fix, ask:
+
 - What was the anti-pattern? (the code that triggered the error)
 - What is the correct pattern? (the fix)
 - Why does this matter? (type safety, performance, maintainability)
 
 ### Step 5: Update typescript-coding Skill
+
 If the fix represents a valuable lesson not already in the `typescript-coding` skill:
 
 1. Read the current skill:
@@ -78,13 +90,16 @@ DO:
 ```
 
 ## Guidelines for Adding Tenets
+
 **Add a tenet when:**
+
 - The pattern is non-obvious to intermediate TypeScript developers
 - The fix requires understanding beyond "follow the error message"
 - The pattern relates to type safety, not just style preferences
 - The lesson applies broadly, not just to one specific file
 
 **Do NOT add a tenet when:**
+
 - The fix is trivial (e.g., removing unused import)
 - The `typescript-coding` skill already covers this pattern
 - The issue is purely stylistic with no type safety implications
@@ -93,6 +108,7 @@ DO:
 ## Common Lint Errors and Lessons
 
 ### `useImportType` / `useExportType`
+
 ```ts
 // DON'T: Import types as values (larger bundle, confusing semantics)
 import { MyInterface } from './types';
@@ -102,6 +118,7 @@ import type { MyInterface } from './types';
 ```
 
 ### `noExplicitAny`
+
 ```ts
 // DON'T: Use any (defeats type checking)
 function process(data: any) { ... }
@@ -113,6 +130,7 @@ function process(data: unknown) {
 ```
 
 ### `noNonNullAssertion`
+
 ```ts
 // DON'T: Assert non-null without proof
 const value = maybeNull!;
@@ -123,17 +141,22 @@ const value = maybeNull;
 ```
 
 ## Integration with Verification Pipeline
+
 After fixing lint errors, run the full verification:
+
 ```bash
 ./verify.sh --ui=false
 ```
+
 This ensures:
+
 - Lint passes
 - Types still check
 - Tests still pass
 - No regressions introduced
 
 ## Example Session
+
 ```
 $ npm run lint:check
 src/parser.ts:42:10 - lint/suspicious/noExplicitAny - Unexpected any. Specify a different type.
@@ -158,7 +181,9 @@ src/cache.ts:88:5 - lint/correctness/noUnusedVariables - Variable 'temp' is decl
 ```
 
 ## Updating Existing Tenets
+
 If a lint fix reveals that an existing tenet is incomplete or unclear:
+
 - Locate the relevant tenet in `typescript-coding` skill
 - Edit to add the missing case or clarify the guidance
 - Ensure the example code is accurate and runs without lint errors

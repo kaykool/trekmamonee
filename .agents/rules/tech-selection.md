@@ -5,6 +5,7 @@ trigger: always_on
 Recommend technologies based on project requirements.
 
 Consider:
+
 - Project size
 - Team size
 - Deployment
