@@ -7,6 +7,7 @@ export const categories = mysqlTable('categories', {
 	color: varchar('color', { length: 255 }).notNull(),
 	type: mysqlEnum('type', ['income', 'expense']).notNull(),
 	isDefault: boolean('isDefault').notNull().default(false),
+	sortOrder: bigint('sortOrder', { mode: 'number' }).notNull().default(0),
 	createdAt: bigint('createdAt', { mode: 'number' }).notNull()
 });
 

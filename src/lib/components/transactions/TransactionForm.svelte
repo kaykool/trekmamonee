@@ -17,6 +17,7 @@
 
 	let type = $state<TransactionType>('expense');
 	let amount = $state<number | undefined>();
+	let amountText = $state<string>('');
 	let itemName = $state('');
 	let date = $state(new Date().toISOString().split('T')[0]);
 	let selectedCategoryId = $state<string>('');
@@ -36,6 +37,7 @@
 					if (tx) {
 						type = tx.type;
 						amount = tx.amount;
+						amountText = tx.amount ? tx.amount.toLocaleString('id-ID') : '';
 						itemName = tx.itemName || '';
 						date = tx.date;
 						selectedCategoryId = tx.categoryId;
@@ -53,6 +55,13 @@
 			loadTx();
 		}
 	});
+
+	function handleAmountInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		const raw = target.value.replace(/\D/g, '');
+		amount = raw ? parseInt(raw, 10) : undefined;
+		amountText = raw ? parseInt(raw, 10).toLocaleString('id-ID') : '';
+	}
 
 	async function handleSave() {
 		if (!amount || amount <= 0) {
@@ -140,10 +149,12 @@
 	{:else}
 		<!-- Amount -->
 		<Input
-			type="number"
+			type="text"
+			inputmode="numeric"
 			label="Amount (IDR)"
 			placeholder="0"
-			bind:value={amount}
+			bind:value={amountText}
+			oninput={handleAmountInput}
 			class="text-lg font-semibold"
 		/>
 

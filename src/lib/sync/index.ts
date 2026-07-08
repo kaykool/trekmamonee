@@ -1,4 +1,5 @@
 import { db } from '$lib/db';
+import { syncStore } from '$lib/stores/sync.svelte';
 
 export async function backupToCloud() {
 	try {
@@ -22,6 +23,7 @@ export async function backupToCloud() {
 		}
 
 		localStorage.setItem('last_sync', new Date().toISOString());
+		syncStore.setUnsynced(false);
 		return true;
 	} catch (error) {
 		console.error('Backup error:', error);
@@ -55,6 +57,7 @@ export async function restoreFromCloud() {
 		});
 
 		localStorage.setItem('last_sync', new Date().toISOString());
+		syncStore.setUnsynced(false);
 		return true;
 	} catch (error) {
 		console.error('Restore error:', error);

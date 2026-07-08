@@ -62,6 +62,29 @@
 		}
 	}
 
+	async function moveCategory(category: Category, direction: -1 | 1) {
+		const index = categories.findIndex((c) => c.id === category.id);
+		if (index === -1) return;
+		const swapIndex = index + direction;
+		if (swapIndex < 0 || swapIndex >= categories.length) return;
+
+		const targetCategory = categories[swapIndex];
+		const newCategories = [...categories];
+		newCategories[index] = targetCategory;
+		newCategories[swapIndex] = category;
+
+		try {
+			await db.transaction('rw', db.categories, async () => {
+				for (let i = 0; i < newCategories.length; i++) {
+					await db.categories.update(newCategories[i].id, { sortOrder: i });
+				}
+			});
+		} catch (e) {
+			console.error(e);
+			addToast('Failed to reorder', 'error');
+		}
+	}
+
 	async function addNewCategory() {
 		const colors = [
 			'bg-red-500',
@@ -82,6 +105,7 @@
 			color: randomColor,
 			type,
 			isDefault: false,
+			sortOrder: categories.length,
 			createdAt: Date.now()
 		};
 		try {
@@ -97,7 +121,10 @@
 	// Subscribe to categories
 	$effect(() => {
 		const currentType = type;
-		const observable = liveQuery(() => db.categories.where('type').equals(currentType).toArray());
+		const observable = liveQuery(async () => {
+			const cats = await db.categories.where('type').equals(currentType).toArray();
+			return cats.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+		});
 
 		const subscription = observable.subscribe((result) => {
 			categories = result;
@@ -207,31 +234,65 @@
 						>
 					</button>
 				{/if}
-				<div
-					class="relative flex h-12 w-12 items-center justify-center rounded-full {category.color} text-2xl text-white shadow-sm transition-transform {selectedCategoryId ===
-						category.id && !isEditingCategories
-						? 'scale-110'
-						: ''}"
-				>
-					{category.icon}
+				<div class="flex items-center gap-1 w-full justify-center">
 					{#if isEditingCategories}
-						<div
-							class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+						<button
+							type="button"
+							class="flex items-center justify-center rounded p-1 text-text-light/60 dark:text-text-dark/60 hover:bg-surface-dark/10 dark:hover:bg-surface-light/10 disabled:opacity-30 transition-colors"
+							onclick={(e) => {
+								e.stopPropagation();
+								e.preventDefault();
+								moveCategory(category, -1);
+							}}
+							disabled={category.id === categories[0]?.id}
+							aria-label="Move left"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								class="h-5 w-5 text-white"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								><path d="M12 20h9"></path><path
-									d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-								></path></svg
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+						</button>
+					{/if}
+
+					<div
+						class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full {category.color} text-2xl text-white shadow-sm transition-transform {selectedCategoryId ===
+							category.id && !isEditingCategories
+							? 'scale-110'
+							: ''}"
+					>
+						{category.icon}
+						{#if isEditingCategories}
+							<div
+								class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
 							>
-						</div>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									class="h-5 w-5 text-white"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									><path d="M12 20h9"></path><path
+										d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+									></path></svg
+								>
+							</div>
+						{/if}
+					</div>
+
+					{#if isEditingCategories}
+						<button
+							type="button"
+							class="flex items-center justify-center rounded p-1 text-text-light/60 dark:text-text-dark/60 hover:bg-surface-dark/10 dark:hover:bg-surface-light/10 disabled:opacity-30 transition-colors"
+							onclick={(e) => {
+								e.stopPropagation();
+								e.preventDefault();
+								moveCategory(category, 1);
+							}}
+							disabled={category.id === categories[categories.length - 1]?.id}
+							aria-label="Move right"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+						</button>
 					{/if}
 				</div>
 

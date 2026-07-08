@@ -1,12 +1,15 @@
 import { json } from '@sveltejs/kit';
-import { db } from '$lib/server/db';
+import { db, withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
 import type { RequestEvent } from './$types';
 
 export async function GET() {
 	try {
-		const allCategories = await db.select().from(categories);
-		const allTransactions = await db.select().from(transactions);
+		const { allCategories, allTransactions } = await withRetry(async () => {
+			const cats = await db.select().from(categories);
+			const txs = await db.select().from(transactions);
+			return { allCategories: cats, allTransactions: txs };
+		});
 
 		return json({
 			success: true,
@@ -29,19 +32,40 @@ export async function POST({ request }: RequestEvent) {
 
 		// Option A (Cloud Backup Strategy): Local Dexie is the absolute source of truth.
 		// We wipe the cloud state and replace it with the exact local state.
-		await db.transaction(async (tx) => {
-			// Wipe cloud state
-			await tx.delete(transactions);
-			await tx.delete(categories);
-			
-			// Insert new state
-			if (incomingCategories.length > 0) {
-				await tx.insert(categories).values(incomingCategories);
-			}
-			
-			if (incomingTransactions.length > 0) {
-				await tx.insert(transactions).values(incomingTransactions);
-			}
+		await withRetry(async () => {
+			await db.transaction(async (tx) => {
+				// Wipe cloud state
+				await tx.delete(transactions);
+				await tx.delete(categories);
+				
+				// Insert new state
+				if (incomingCategories.length > 0) {
+					const sanitizedCategories = incomingCategories.map((c: Record<string, unknown>) => ({
+						...c,
+						name: (c.name as string) || 'Unknown',
+						icon: (c.icon as string) || '📌',
+						color: (c.color as string) || 'bg-gray-500',
+						type: (c.type as string) || 'expense',
+						isDefault: typeof c.isDefault === 'boolean' ? c.isDefault : false,
+						sortOrder: (c.sortOrder as number) || 0,
+						createdAt: (c.createdAt as number) || Date.now()
+					}));
+					await tx.insert(categories).values(sanitizedCategories);
+				}
+				
+				if (incomingTransactions.length > 0) {
+					const sanitizedTransactions = incomingTransactions.map((t: Record<string, unknown>) => ({
+						...t,
+						amount: (t.amount as number) || 0,
+						type: (t.type as string) || 'expense',
+						itemName: (t.itemName as string) || 'Untitled',
+						date: (t.date as string) || new Date().toISOString().split('T')[0],
+						createdAt: (t.createdAt as number) || Date.now(),
+						updatedAt: (t.updatedAt as number) || Date.now()
+					}));
+					await tx.insert(transactions).values(sanitizedTransactions);
+				}
+			});
 		});
 
 		return json({ success: true, message: 'Backup successful' });

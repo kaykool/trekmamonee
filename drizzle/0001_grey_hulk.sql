@@ -1,0 +1,1 @@
+ALTER TABLE `categories` ADD `sortOrder` bigint DEFAULT 0 NOT NULL;
