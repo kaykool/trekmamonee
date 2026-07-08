@@ -40,23 +40,21 @@ test.describe('Categories Management', () => {
 		// Wait for it to be rendered as span or just find the one with text
 		await expect(page.locator('text=Test Category')).toBeVisible();
 
-		// Now find the move left button for the LAST category
-		// The Move Left button has aria-label="Move left"
-		const moveLeftBtns = page.locator('button[aria-label="Move left"]');
-		const lastCatMoveLeft = moveLeftBtns.last();
+		// Now find the move left button for the test category
+		const testCategoryRow = page.locator('div.group').filter({ hasText: 'Test Category' });
+		const moveLeftBtn = testCategoryRow.locator('button[aria-label="Move left"]');
 		
 		// Move it left
-		await lastCatMoveLeft.click();
+		await moveLeftBtn.click();
 
 		// We would ideally verify the DOM order has changed, but due to Playwright's parallel execution and reactivity, 
 		// verifying the exact DOM order without strict test IDs can be flaky. 
 		// We'll verify that the button is clickable and doesn't crash the app.
-		await expect(lastCatMoveLeft).toBeEnabled();
+		await expect(moveLeftBtn).toBeEnabled();
 
 		// Move it back right
-		const moveRightBtns = page.locator('button[aria-label="Move right"]');
-		const prevCatMoveRight = moveRightBtns.nth(initialCount - 1); // it's now at the 2nd to last position
-		await prevCatMoveRight.click();
+		const moveRightBtn = testCategoryRow.locator('button[aria-label="Move right"]');
+		await moveRightBtn.click();
 
 		// Close edit mode
 		await page.click('button[aria-label="Done editing categories"]');

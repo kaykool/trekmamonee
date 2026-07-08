@@ -1,11 +1,14 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { checkRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
+import { checkRateLimit, checkGlobalRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
 import type { RequestEvent } from './$types';
 
 export async function POST({ request, getClientAddress }: RequestEvent) {
 	try {
 		const ip = getClientAddress();
+		if (!checkGlobalRateLimit(ip)) {
+			return json({ success: false, error: 'Too many requests. Please try again later.' }, { status: 429 });
+		}
 		if (!checkRateLimit(ip)) {
 			return json({ success: false, error: 'Too many failed attempts. Try again in 15 minutes.' }, { status: 429 });
 		}

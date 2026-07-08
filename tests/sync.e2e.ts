@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Cloud Sync', () => {
 	test.beforeEach(async ({ page }) => {
+		// Mock cloud password in localStorage to show the sync UI
+		await page.addInitScript(() => {
+			window.localStorage.setItem('cloud_sync_password', 'test-password');
+		});
 		await page.goto('/settings');
 	});
 
@@ -17,7 +21,7 @@ test.describe('Cloud Sync', () => {
 		});
 
 		// Verify initial state
-		await expect(page.locator('text=Last backup').locator('..').locator('span').last()).toContainText('Never');
+		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).toContainText('Never');
 
 		// Click Backup
 		const backupButton = page.getByRole('button', { name: 'Backup' });
@@ -27,7 +31,7 @@ test.describe('Cloud Sync', () => {
 		await expect(backupButton).toHaveText('Backup');
 
 		// Last backup time should update
-		await expect(page.locator('text=Last backup').locator('..').locator('span').last()).not.toContainText('Never');
+		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).not.toContainText('Never');
 	});
 
 	test('Happy Path: Restore from Cloud', async ({ page }) => {
@@ -52,7 +56,7 @@ test.describe('Cloud Sync', () => {
 		await expect(dialog).toBeVisible();
 
 		// Click Confirm
-		await page.getByRole('button', { name: 'Restore', exact: true }).nth(1).click();
+		await page.locator('.pointer-events-auto').getByRole('button', { name: 'Restore', exact: true }).click();
 
 		// Dialog should close
 		await expect(dialog).not.toBeVisible();
@@ -76,7 +80,7 @@ test.describe('Cloud Sync', () => {
 		await expect(backupButton).toBeEnabled();
 
 		// Last backup time should still be Never (since it failed)
-		await expect(page.locator('text=Last backup').locator('..').locator('span').last()).toContainText('Never');
+		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).toContainText('Never');
 	});
 
 	test('Edge Case: Restore with invalid data from cloud', async ({ page }) => {
@@ -96,7 +100,7 @@ test.describe('Cloud Sync', () => {
 		await page.getByRole('button', { name: 'Restore' }).click();
 
 		// Confirm dialog
-		await page.getByRole('button', { name: 'Restore', exact: true }).nth(1).click();
+		await page.locator('.pointer-events-auto').getByRole('button', { name: 'Restore', exact: true }).click();
 
 		// Wait for dialog to close (meaning the process finished, even if it failed gracefully)
 		await expect(page.locator('text=Restore from Cloud')).not.toBeVisible();

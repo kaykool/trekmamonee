@@ -10,6 +10,8 @@
 	import { backupToCloud, restoreFromCloud, getLastSyncTime, verifyCloudPassword } from '$lib/sync';
 	import { syncStore } from '$lib/stores/sync.svelte';
 	import { onMount } from 'svelte';
+	import { db } from '$lib/db';
+	import { seedDefaultCategories } from '$lib/db/seed';
 
 	let isCategorySheetOpen = $state(false);
 	let pinMode = $state<'none' | 'setup' | 'remove'>('none');
@@ -19,7 +21,7 @@
 
 	let lastSync = $state<string | null>(null);
 	let syncAction = $state<'backup' | 'restore' | null>(null);
-	
+
 	let tempPassword = $state('');
 	let isEditingPassword = $state(false);
 	let isVerifying = $state(false);
@@ -33,22 +35,22 @@
 		const date = new Date(dateString);
 		const now = new Date();
 		const diffInSeconds = Math.round((date.getTime() - now.getTime()) / 1000);
-		
+
 		if (Math.abs(diffInSeconds) < 60) return 'Just now';
-		
+
 		const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 		const diffInMinutes = Math.round(diffInSeconds / 60);
 		if (Math.abs(diffInMinutes) < 60) return rtf.format(diffInMinutes, 'minute');
-		
+
 		const diffInHours = Math.round(diffInMinutes / 60);
 		if (Math.abs(diffInHours) < 24) return rtf.format(diffInHours, 'hour');
-		
+
 		const diffInDays = Math.round(diffInHours / 24);
 		if (Math.abs(diffInDays) < 30) return rtf.format(diffInDays, 'day');
-		
+
 		const diffInMonths = Math.round(diffInDays / 30);
 		if (Math.abs(diffInMonths) < 12) return rtf.format(diffInMonths, 'month');
-		
+
 		const diffInYears = Math.round(diffInMonths / 12);
 		return rtf.format(diffInYears, 'year');
 	}
@@ -75,7 +77,8 @@
 	async function handleRestore() {
 		openConfirmDialog({
 			title: 'Restore from Cloud',
-			description: 'This will overwrite all local transactions and categories with the cloud backup. Are you sure?',
+			description:
+				'This will overwrite all local transactions and categories with the cloud backup. Are you sure?',
 			confirmText: 'Restore',
 			isDestructive: true,
 			onconfirm: async () => {
@@ -89,6 +92,32 @@
 					console.error(error);
 					addToast('Restore failed', 'error');
 					syncAction = null;
+				}
+			}
+		});
+	}
+
+	function handleResetData() {
+		openConfirmDialog({
+			title: 'Reset App Data',
+			description:
+				'This will permanently delete all your transactions and restore categories to defaults. Your PIN and Cloud Sync settings will be kept. Are you absolutely sure?',
+			confirmText: 'Reset Data',
+			isDestructive: true,
+			onconfirm: async () => {
+				try {
+					await db.transaction('rw', db.categories, db.transactions, async () => {
+						await db.categories.clear();
+						await db.transactions.clear();
+					});
+					await seedDefaultCategories();
+					syncStore.setUnsynced(true); // Trigger a sync to update cloud state
+
+					addToast('Data reset successful. Reloading...', 'success');
+					setTimeout(() => window.location.reload(), 1000);
+				} catch (e) {
+					console.error(e);
+					addToast('Failed to reset data', 'error');
 				}
 			}
 		});
@@ -108,7 +137,10 @@
 					<div class="flex items-center gap-2">
 						<span class="text-sm font-medium text-text-light dark:text-text-dark">Last backup</span>
 						{#if syncStore.hasUnsyncedChanges}
-							<span class="flex h-2 w-2 rounded-full bg-warning animate-pulse" title="Unsynced local changes"></span>
+							<span
+								class="flex h-2 w-2 rounded-full bg-warning animate-pulse"
+								title="Unsynced local changes"
+							></span>
 						{/if}
 					</div>
 					<span class="text-xs text-text-light/60 dark:text-text-dark/60">
@@ -119,9 +151,31 @@
 					</span>
 				</div>
 				<div class="flex gap-2">
-					<Button variant="secondary" size="sm" onclick={handleRestore} disabled={syncAction !== null}>
+					<Button
+						variant="secondary"
+						size="sm"
+						onclick={handleRestore}
+						disabled={syncAction !== null}
+					>
 						{#if syncAction === 'restore'}
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							<svg
+								class="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								><circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle><path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path></svg
+							>
 							Restoring...
 						{:else}
 							Restore
@@ -129,7 +183,24 @@
 					</Button>
 					<Button size="sm" onclick={handleBackup} disabled={syncAction !== null}>
 						{#if syncAction === 'backup'}
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							<svg
+								class="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								><circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle><path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path></svg
+							>
 							Backing up...
 						{:else}
 							Backup
@@ -139,34 +210,58 @@
 			</div>
 			<div class="h-px w-full bg-surface-dark/10 dark:bg-surface-light/10 my-2"></div>
 		{/if}
-		
+
 		<div class="flex flex-col gap-3">
-			<span class="text-sm font-medium text-text-light dark:text-text-dark">Cloud Sync Password</span>
-			
+			<span class="text-sm font-medium text-text-light dark:text-text-dark"
+				>Cloud Sync Password</span
+			>
+
 			{#if syncStore.cloudPassword && !isEditingPassword}
-				<div class="flex items-center justify-between rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 p-3">
+				<div
+					class="flex items-center justify-between rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 p-3"
+				>
 					<div class="flex items-center gap-2">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="text-primary"
+							><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path
+								d="M7 11V7a5 5 0 0 1 10 0v4"
+							></path></svg
+						>
 						<span class="text-sm font-medium text-primary">Configured</span>
 					</div>
 					<div class="flex gap-2">
-						<Button variant="secondary" size="sm" onclick={() => isEditingPassword = true}>Edit</Button>
-						<Button variant="secondary" size="sm" onclick={() => {
-							syncStore.setCloudPassword('');
-							addToast('API Key removed', 'info');
-						}}>Remove</Button>
+						<Button variant="secondary" size="sm" onclick={() => (isEditingPassword = true)}
+							>Edit</Button
+						>
+						<Button
+							variant="secondary"
+							size="sm"
+							onclick={() => {
+								syncStore.setCloudPassword('');
+								addToast('API Key removed', 'info');
+							}}>Remove</Button
+						>
 					</div>
 				</div>
 			{:else}
 				<div class="flex gap-2">
-					<input 
-						type="password" 
+					<input
+						type="password"
 						bind:value={tempPassword}
-						placeholder="Enter password from .env"
+						placeholder="Enter password"
 						class="flex-1 rounded-lg bg-surface-dark/5 dark:bg-surface-light/5 px-3 py-2 text-sm text-text-light dark:text-text-dark placeholder-text-light/40 dark:placeholder-text-dark/40 outline-none focus:ring-1 focus:ring-primary"
 					/>
-					<Button 
-						size="sm" 
+					<Button
+						size="sm"
 						disabled={isVerifying}
 						onclick={async () => {
 							if (!tempPassword) {
@@ -176,7 +271,7 @@
 							isVerifying = true;
 							const isValid = await verifyCloudPassword(tempPassword);
 							isVerifying = false;
-							
+
 							if (isValid) {
 								syncStore.setCloudPassword(tempPassword);
 								isEditingPassword = false;
@@ -187,7 +282,24 @@
 						}}
 					>
 						{#if isVerifying}
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+							<svg
+								class="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								><circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle><path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path></svg
+							>
 							Verifying...
 						{:else}
 							Save
@@ -195,10 +307,15 @@
 					</Button>
 				</div>
 				{#if isEditingPassword && syncStore.cloudPassword}
-					<Button variant="ghost" size="sm" class="self-start text-xs -mt-1" onclick={() => {
-						isEditingPassword = false;
-						tempPassword = syncStore.cloudPassword;
-					}}>Cancel</Button>
+					<Button
+						variant="ghost"
+						size="sm"
+						class="self-start text-xs -mt-1"
+						onclick={() => {
+							isEditingPassword = false;
+							tempPassword = syncStore.cloudPassword;
+						}}>Cancel</Button
+					>
 				{/if}
 			{/if}
 		</div>
@@ -246,6 +363,19 @@
 			{:else}
 				<Button variant="secondary" size="sm" onclick={() => (pinMode = 'setup')}>Set PIN</Button>
 			{/if}
+		</div>
+	</Card>
+
+	<Card class="flex flex-col gap-4 border-danger/20 dark:border-danger/20">
+		<h2 class="font-semibold text-danger">Danger Zone</h2>
+		<div class="flex items-center justify-between">
+			<div class="flex flex-col">
+				<span class="text-sm font-medium text-text-light dark:text-text-dark">Reset App Data</span>
+				<span class="text-xs text-text-light/60 dark:text-text-dark/60"
+					>Permanently delete all local data</span
+				>
+			</div>
+			<Button variant="danger" size="sm" onclick={handleResetData}>Reset Data</Button>
 		</div>
 	</Card>
 </div>

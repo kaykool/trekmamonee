@@ -17,6 +17,7 @@
 	let isEditingCategories = $state(false);
 	let editingCategoryId = $state<string | null>(null);
 	let editingCategoryName = $state('');
+	let isProcessing = $state(false);
 
 	function focusOnMount(node: HTMLInputElement) {
 		node.focus();
@@ -24,17 +25,20 @@
 	}
 
 	async function handleCategoryRename(category: Category) {
-		if (!editingCategoryName.trim()) {
+		if (!editingCategoryName.trim() || isProcessing) {
 			editingCategoryId = null;
 			return;
 		}
+		isProcessing = true;
 		try {
 			await db.categories.update(category.id, { name: editingCategoryName.trim() });
 		} catch (e) {
 			console.error(e);
 			addToast('Failed to rename category', 'error');
+		} finally {
+			isProcessing = false;
+			editingCategoryId = null;
 		}
-		editingCategoryId = null;
 	}
 
 	function promptDeleteCategory(category: Category) {
@@ -47,27 +51,34 @@
 	}
 
 	async function executeDeleteCategory(category: Category) {
-		const txCount = await db.transactions.where('categoryId').equals(category.id).count();
-		if (txCount > 0) {
-			addToast('Cannot delete category in use', 'error');
-			return;
-		}
+		if (isProcessing) return;
+		isProcessing = true;
 		try {
+			const txCount = await db.transactions.where('categoryId').equals(category.id).count();
+			if (txCount > 0) {
+				addToast('Cannot delete category in use', 'error');
+				return;
+			}
 			await db.categories.delete(category.id);
 			if (selectedCategoryId === category.id) selectedCategoryId = '';
 			addToast('Category deleted', 'success');
 		} catch (e) {
 			console.error(e);
 			addToast('Failed to delete category', 'error');
+		} finally {
+			isProcessing = false;
 		}
 	}
 
 	async function moveCategory(category: Category, direction: -1 | 1) {
+		if (isProcessing) return;
+		
 		const index = categories.findIndex((c) => c.id === category.id);
 		if (index === -1) return;
 		const swapIndex = index + direction;
 		if (swapIndex < 0 || swapIndex >= categories.length) return;
 
+		isProcessing = true;
 		const targetCategory = categories[swapIndex];
 		const newCategories = [...categories];
 		newCategories[index] = targetCategory;
@@ -82,10 +93,15 @@
 		} catch (e) {
 			console.error(e);
 			addToast('Failed to reorder', 'error');
+		} finally {
+			isProcessing = false;
 		}
 	}
 
 	async function addNewCategory() {
+		if (isProcessing) return;
+		isProcessing = true;
+		
 		const colors = [
 			'bg-red-500',
 			'bg-blue-500',
@@ -111,10 +127,13 @@
 		try {
 			await db.categories.add(newCat);
 			editingCategoryId = newCat.id;
-			editingCategoryName = newCat.name;
+			editingCategoryName = ''; // Start empty for typing
+			selectedCategoryId = newCat.id;
 		} catch (e) {
 			console.error(e);
 			addToast('Failed to add category', 'error');
+		} finally {
+			isProcessing = false;
 		}
 	}
 
@@ -322,35 +341,33 @@
 			</div>
 		{/each}
 
-		{#if isEditingCategories}
-			<button
-				class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all border-2 border-dashed border-surface-dark/20 hover:border-surface-dark/40 hover:bg-surface-dark/5 dark:border-surface-light/20 dark:hover:border-surface-light/40 dark:hover:bg-surface-light/5"
-				onclick={(e) => {
-					e.preventDefault();
-					addNewCategory();
-				}}
+		<button
+			class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all border-2 border-dashed border-surface-dark/20 hover:border-surface-dark/40 hover:bg-surface-dark/5 dark:border-surface-light/20 dark:hover:border-surface-light/40 dark:hover:bg-surface-light/5"
+			onclick={(e) => {
+				e.preventDefault();
+				addNewCategory();
+			}}
+		>
+			<div
+				class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark/5 dark:bg-surface-light/5 text-2xl text-text-light/50 dark:text-text-dark/50"
 			>
-				<div
-					class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark/5 dark:bg-surface-light/5 text-2xl text-text-light/50 dark:text-text-dark/50"
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-6 w-6"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"
+					></line></svg
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"
-						></line></svg
-					>
-				</div>
-				<span
-					class="w-full truncate text-center text-xs font-medium text-text-light/60 dark:text-text-dark/60"
-					>New</span
-				>
-			</button>
-		{/if}
+			</div>
+			<span
+				class="w-full truncate text-center text-xs font-medium text-text-light/60 dark:text-text-dark/60"
+				>Add New</span
+			>
+		</button>
 	</div>
 </div>

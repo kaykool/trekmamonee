@@ -9,16 +9,25 @@
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import PinLock from '$lib/components/auth/PinLock.svelte';
+	import InitialSetup from '$lib/components/auth/InitialSetup.svelte';
 	import ReloadPrompt from '$lib/components/pwa/ReloadPrompt.svelte';
 	import { uiState, closeTransactionSheet, closeConfirmDialog } from '$lib/state/ui.svelte';
 	import { pinStore } from '$lib/stores/pin.svelte';
 	import { syncStore } from '$lib/stores/sync.svelte';
 	import { backupToCloud } from '$lib/sync';
+	import { browser } from '$app/environment';
 	import '$lib/db/seed';
 
 	let { children } = $props();
 
 	let autosaveTimeout: ReturnType<typeof setTimeout>;
+	let showInitialSetup = $state(false);
+
+	$effect(() => {
+		if (browser && localStorage.getItem('initial_setup_completed') !== 'true') {
+			showInitialSetup = true;
+		}
+	});
 
 	$effect(() => {
 		if (syncStore.hasUnsyncedChanges && syncStore.cloudPassword) {
@@ -49,10 +58,16 @@
 <svelte:window onbeforeunload={handleBeforeUnload} />
 <svelte:document onvisibilitychange={handleVisibilityChange} />
 
-<PinLock mode="verify">
-	<div
-		class="relative min-h-screen w-full bg-bg-light dark:bg-bg-dark selection:bg-primary/30 pb-16"
-	>
+{#if showInitialSetup}
+	<InitialSetup oncomplete={() => {
+		localStorage.setItem('initial_setup_completed', 'true');
+		showInitialSetup = false;
+	}} />
+{:else}
+	<PinLock mode="verify">
+		<div
+			class="relative min-h-screen w-full bg-bg-light dark:bg-bg-dark selection:bg-primary/30 pb-16"
+		>
 		<Header />
 
 		<main class="mx-auto w-full max-w-2xl px-4 py-6">
@@ -87,4 +102,5 @@
 		<ReloadPrompt />
 		<Toast />
 	</div>
-</PinLock>
+	</PinLock>
+{/if}

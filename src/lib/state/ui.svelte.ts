@@ -16,8 +16,10 @@ export const uiState = $state({
 		title: '',
 		description: '',
 		confirmText: 'Confirm',
+		cancelText: 'Cancel',
 		isDestructive: true,
-		onconfirm: () => {}
+		onconfirm: () => {},
+		oncancel: () => {}
 	}
 });
 
@@ -25,16 +27,20 @@ export function openConfirmDialog(options: {
 	title: string;
 	description: string;
 	confirmText?: string;
+	cancelText?: string;
 	isDestructive?: boolean;
-	onconfirm: () => void;
+	onconfirm: () => void | Promise<void>;
+	oncancel?: () => void;
 }) {
 	uiState.confirmDialog = {
 		isOpen: true,
 		title: options.title,
 		description: options.description,
 		confirmText: options.confirmText ?? 'Confirm',
+		cancelText: options.cancelText ?? 'Cancel',
 		isDestructive: options.isDestructive ?? true,
-		onconfirm: options.onconfirm
+		onconfirm: options.onconfirm,
+		oncancel: options.oncancel ?? (() => {})
 	};
 }
 
