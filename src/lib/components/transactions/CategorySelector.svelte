@@ -156,6 +156,7 @@
 		{#each categories as category (category.id)}
 			<button
 				type="button"
+				role="button"
 				class="group relative flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all {selectedCategoryId ===
 					category.id && !isEditingCategories
 					? 'bg-background dark:bg-background-dark shadow-sm ring-2 ring-primary/50'

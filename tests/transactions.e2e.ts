@@ -72,8 +72,8 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		// Attempt to save without filling anything
 		await page.locator('button:has-text("Save expense")').click();
 
-		// Check if the inline error appeared
-		const errorMessage = page.locator('text="Please enter a valid amount greater than 0."');
+		// Check if the error appeared (use first() in case multiple toasts stack up)
+		const errorMessage = page.locator('text="Please enter a valid amount greater than 0."').first();
 		await expect(errorMessage).toBeVisible();
 
 		// We should still be on the form modal
