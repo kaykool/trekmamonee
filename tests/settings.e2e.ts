@@ -17,14 +17,14 @@ test.describe('Settings & PIN Lock', () => {
 
 		// Type 123456
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: i.toString(), exact: true }).click();
+			await page.getByRole('button', { name: `Digit ${i}`, exact: true }).click();
 		}
 		await expect(page.getByText('Confirm new PIN')).toBeVisible();
 		await page.waitForTimeout(500); // Wait for state change
 
 		// Confirm 123456
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: i.toString(), exact: true }).click();
+			await page.getByRole('button', { name: `Digit ${i}`, exact: true }).click();
 		}
 
 		// Should be back to settings and show Enabled
@@ -37,7 +37,7 @@ test.describe('Settings & PIN Lock', () => {
 
 		// Verify correct PIN during removal
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: i.toString(), exact: true }).click();
+			await page.getByRole('button', { name: `Digit ${i}`, exact: true }).click();
 		}
 
 		await page.waitForTimeout(1000); // Wait for processing
@@ -55,13 +55,13 @@ test.describe('Settings & PIN Lock', () => {
 		await page.waitForTimeout(1000); // Wait for BottomSheet
 
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: '1', exact: true }).click();
+			await page.getByRole('button', { name: 'Digit 1', exact: true }).click();
 		}
 		await expect(page.getByText('Confirm new PIN')).toBeVisible();
 		await page.waitForTimeout(500);
 
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: '1', exact: true }).click();
+			await page.getByRole('button', { name: 'Digit 1', exact: true }).click();
 		}
 		await expect(page.getByText('Enabled')).toBeVisible();
 
@@ -76,12 +76,12 @@ test.describe('Settings & PIN Lock', () => {
 		});
 
 		// Modal should appear
-		await expect(page.getByText('Unlock Trekmamonee')).toBeVisible();
+		await expect(page.getByText('Enter PIN to unlock')).toBeVisible();
 		await page.waitForTimeout(1000); // Wait for fade in
 
 		// Unlock
 		for (let i = 1; i <= 6; i++) {
-			await page.getByRole('button', { name: '1', exact: true }).click();
+			await page.getByRole('button', { name: 'Digit 1', exact: true }).click();
 		}
 
 		// Should be back to settings

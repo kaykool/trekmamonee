@@ -38,12 +38,13 @@
 {#if isOpen}
 	<div use:portal>
 		<!-- Backdrop -->
-		<button
+		<div
+			role="presentation"
 			class="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm cursor-default border-none outline-none w-full h-full"
-			aria-label="Cancel"
 			onclick={handleCancel}
+			onkeydown={(e) => e.key === 'Escape' && handleCancel()}
 			transition:fade={{ duration: 200, easing: cubicOut }}
-		></button>
+		></div>
 
 		<!-- Dialog -->
 		<div class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">

@@ -3,7 +3,7 @@
 	import IncomeExpenseSummary from '$lib/components/dashboard/IncomeExpenseSummary.svelte';
 	import SpendingChart from '$lib/components/dashboard/SpendingChart.svelte';
 	import RecentTransactions from '$lib/components/dashboard/RecentTransactions.svelte';
-	import BottomSheet from '$lib/components/ui/BottomSheet.svelte';
+	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { db, type Transaction } from '$lib/db';
 	import { liveQuery } from 'dexie';
@@ -91,10 +91,6 @@
 			openEditTransaction(selectedTransaction.id);
 		}
 	}
-
-	let formattedBottomSheetAmount = $derived(
-		selectedTransaction ? formatIDR(selectedTransaction.amount) : ''
-	);
 </script>
 
 <svelte:head>
@@ -116,24 +112,9 @@
 </div>
 
 <!-- Transaction Options Sheet -->
-<BottomSheet bind:isOpen={isSheetOpen} title="Transaction Options">
-	{#if selectedTransaction}
-		<div class="mb-6 flex flex-col items-center gap-2 text-center">
-			<span
-				class="text-3xl font-bold {selectedTransaction.type === 'expense'
-					? 'text-danger'
-					: 'text-primary'}"
-			>
-				{selectedTransaction.type === 'expense' ? '-' : '+'}{formattedBottomSheetAmount}
-			</span>
-			<span class="text-xl font-semibold text-text-light dark:text-text-dark mt-2"
-				>{selectedTransaction.itemName}</span
-			>
-		</div>
-
-		<div class="flex flex-col gap-3">
-			<Button variant="primary" class="w-full" onclick={handleEdit}>Edit Transaction</Button>
-			<Button variant="danger" class="w-full" onclick={promptDelete}>Delete</Button>
-		</div>
-	{/if}
-</BottomSheet>
+<TransactionOptionsSheet
+	bind:isOpen={isSheetOpen}
+	transaction={selectedTransaction}
+	onedit={handleEdit}
+	ondelete={promptDelete}
+/>

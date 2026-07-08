@@ -18,7 +18,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 
 		// Click on the first category (Food & Dining should be seeded)
 		// The button contains the icon and name, we can select the first button in the grid
-		const firstCategory = page.locator('.grid button').first();
+		const firstCategory = page.locator('.grid [role="button"]').first();
 		await firstCategory.click();
 
 		// Click Save
@@ -50,7 +50,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.fill('input[type="text"]', 'Gaji');
 
 		// Click on the first category (Salary)
-		await page.locator('.grid button').first().click();
+		await page.locator('.grid [role="button"]').first().click();
 
 		// Click Save
 		await page.locator('button:has-text("Save income")').click();
@@ -93,7 +93,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
 		await page.fill('input[type="number"]', '10000');
 		await page.fill('input[type="text"]', 'Kopi');
-		await page.locator('.grid button').first().click();
+		await page.locator('.grid [role="button"]').first().click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
@@ -101,7 +101,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.waitForTimeout(300);
 		await page.fill('input[type="number"]', '50000');
 		await page.fill('input[type="text"]', 'Bonus');
-		await page.locator('.grid button').first().click();
+		await page.locator('.grid [role="button"]').first().click();
 		await page.locator('button:has-text("Save income")').click();
 
 		// Both should be visible initially (All Types)
@@ -126,7 +126,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
 		await page.fill('input[type="number"]', '20000');
 		await page.fill('input[type="text"]', 'Old Item');
-		await page.locator('.grid button').first().click();
+		await page.locator('.grid [role="button"]').first().click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		// Click the transaction to open the Action BottomSheet
@@ -165,7 +165,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
 		await page.fill('input[type="number"]', '99999');
 		await page.fill('input[type="text"]', 'To Be Deleted');
-		await page.locator('.grid button').first().click();
+		await page.locator('.grid [role="button"]').first().click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		// Verify it's there
@@ -210,7 +210,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.getByRole('button', { name: 'Done editing categories' }).click();
 
 		// Click on the newly created 'Gaming' category
-		await page.locator('.grid button:has-text("Gaming")').click();
+		await page.locator('.grid [role="button"]:has-text("Gaming")').click();
 
 		// Fill in amount to save transaction
 		await page.fill('input[type="number"]', '600000');

@@ -6,6 +6,8 @@
 	import { Chart, registerables } from 'chart.js';
 	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
 	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
+	import { formatIDR, resolveTailwindColor } from '$lib/utils';
+	import { theme } from '$lib/stores/theme';
 
 	Chart.register(...registerables);
 
@@ -130,24 +132,12 @@
 	let chartCanvas = $state<HTMLCanvasElement | null>(null);
 	let chartInstance: Chart | null = null;
 
-	function resolveTailwindColor(className: string): string {
-		const map: Record<string, string> = {
-			'bg-red-500': '#ef4444',
-			'bg-blue-500': '#3b82f6',
-			'bg-green-500': '#22c55e',
-			'bg-yellow-500': '#eab308',
-			'bg-purple-500': '#a855f7',
-			'bg-pink-500': '#ec4899',
-			'bg-indigo-500': '#6366f1',
-			'bg-teal-500': '#14b8a6',
-			'bg-gray-500': '#6b7280',
-			'bg-primary-light': '#818cf8',
-			'bg-primary-dark': '#4f46e5'
-		};
-		return map[className] || className.replace('bg-', '#');
-	}
-
 	$effect(() => {
+		const currentTheme = $theme;
+		const isDark = document.documentElement.classList.contains('dark');
+		const textColor = isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)';
+		const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
 		if (chartCanvas && breakdown.length > 0) {
 			if (chartInstance) {
 				chartInstance.destroy();
@@ -172,18 +162,31 @@
 					plugins: {
 						legend: {
 							display: false
+						},
+						tooltip: {
+							backgroundColor: isDark ? 'rgba(0, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+							titleColor: isDark ? '#fff' : '#000',
+							bodyColor: isDark ? '#fff' : '#000',
+							borderColor: gridColor,
+							borderWidth: 1
 						}
 					},
 					scales: {
 						y: {
 							beginAtZero: true,
 							grid: {
-								color: 'rgba(0,0,0,0.05)'
+								color: gridColor
+							},
+							ticks: {
+								color: textColor
 							}
 						},
 						x: {
 							grid: {
 								display: false
+							},
+							ticks: {
+								color: textColor
 							}
 						}
 					}
@@ -201,12 +204,6 @@
 			}
 		};
 	});
-
-	function formatIDR(amount: number) {
-		const formattedVal = Math.abs(amount).toLocaleString('id-ID');
-		const sign = amount < 0 ? '-' : '';
-		return `${sign}Rp ${formattedVal}`;
-	}
 </script>
 
 <svelte:head>
@@ -266,29 +263,29 @@
 	</div>
 
 	<!-- Financial Overview Cards -->
-	<div class="grid grid-cols-3 gap-3">
+	<div class="flex flex-col gap-3">
 		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>INCOME</span
 			>
-			<span class="text-xs md:text-sm font-bold text-primary truncate"
+			<span class="text-lg font-bold text-primary"
 				>{formatIDR(summary.totalIncome)}</span
 			>
 		</Card>
 		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>EXPENSE</span
 			>
-			<span class="text-xs md:text-sm font-bold text-danger truncate"
+			<span class="text-lg font-bold text-danger"
 				>{formatIDR(summary.totalExpense)}</span
 			>
 		</Card>
 		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+			<span class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
 				>SAVINGS</span
 			>
 			<span
-				class="text-xs md:text-sm font-bold truncate {summary.balance >= 0
+				class="text-lg font-bold {summary.balance >= 0
 					? 'text-primary'
 					: 'text-danger'}"
 			>

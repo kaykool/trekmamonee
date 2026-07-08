@@ -22,8 +22,12 @@
 	</div>
 
 	{#if recentTransactions.length === 0}
-		<Card class="flex items-center justify-center py-10 bg-surface-light dark:bg-surface-dark">
-			<span class="text-text-light/50 dark:text-text-dark/50">No transactions yet</span>
+		<Card class="flex flex-col items-center justify-center py-10 gap-2 bg-surface-light dark:bg-surface-dark text-center">
+			<div class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-dark/5 dark:bg-surface-light/5 text-text-light/40 dark:text-text-dark/40 mb-1">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+			</div>
+			<span class="text-text-light/50 dark:text-text-dark/50 font-medium">No transactions yet</span>
+			<span class="text-xs text-text-light/40 dark:text-text-dark/40">Tap + to add your first expense</span>
 		</Card>
 	{:else}
 		<div class="flex flex-col gap-2">

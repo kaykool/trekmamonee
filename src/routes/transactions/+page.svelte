@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Select from '$lib/components/ui/Select.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import BottomSheet from '$lib/components/ui/BottomSheet.svelte';
+	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import TransactionList from '$lib/components/transactions/TransactionList.svelte';
 	import { db, type Transaction, type Category } from '$lib/db';
 	import { liveQuery } from 'dexie';
@@ -89,17 +89,6 @@
 			openEditTransaction(selectedTransaction.id);
 		}
 	}
-
-	let formattedAmount = $derived(
-		selectedTransaction
-			? new Intl.NumberFormat('id-ID', {
-					style: 'currency',
-					currency: 'IDR',
-					minimumFractionDigits: 0,
-					maximumFractionDigits: 0
-				}).format(selectedTransaction.amount)
-			: ''
-	);
 </script>
 
 <svelte:head>
@@ -109,7 +98,7 @@
 <div class="flex flex-col gap-6">
 	<!-- Month Selector -->
 	<div
-		class="flex items-center justify-between bg-surface dark:bg-surface-dark p-2 rounded-2xl shadow-sm"
+		class="flex items-center justify-between bg-surface-light dark:bg-surface-dark p-2 rounded-2xl shadow-sm"
 	>
 		<button
 			class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-surface-dark/5 dark:hover:bg-surface-light/10 text-text-light/60 hover:text-text-light dark:text-text-dark/60 dark:hover:text-text-dark"
@@ -158,30 +147,14 @@
 				{ value: 'income', label: 'Income' }
 			]}
 		/>
-		<Select class="flex-1" options={[{ value: 'all', label: 'All Categories' }]} disabled={true} />
 	</div>
 
 	<TransactionList {transactions} {categories} ontransactionclick={handleTransactionClick} />
 </div>
 
-<BottomSheet bind:isOpen={isSheetOpen} title="Transaction Options">
-	{#if selectedTransaction}
-		<div class="mb-6 flex flex-col items-center gap-2 text-center">
-			<span
-				class="text-3xl font-bold {selectedTransaction.type === 'expense'
-					? 'text-danger'
-					: 'text-primary'}"
-			>
-				{selectedTransaction.type === 'expense' ? '-' : '+'}{formattedAmount}
-			</span>
-			<span class="text-xl font-semibold text-text-light dark:text-text-dark mt-2"
-				>{selectedTransaction.itemName}</span
-			>
-		</div>
-
-		<div class="flex flex-col gap-3">
-			<Button variant="primary" class="w-full" onclick={handleEdit}>Edit Transaction</Button>
-			<Button variant="danger" class="w-full" onclick={promptDelete}>Delete</Button>
-		</div>
-	{/if}
-</BottomSheet>
+<TransactionOptionsSheet
+	bind:isOpen={isSheetOpen}
+	transaction={selectedTransaction}
+	onedit={handleEdit}
+	ondelete={promptDelete}
+/>

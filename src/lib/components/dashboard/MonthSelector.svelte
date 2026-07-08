@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	let {
 		displayMonth,
 		onprev,
@@ -30,7 +31,11 @@
 		>
 	</button>
 
-	<span class="text-base font-semibold text-text-light dark:text-text-dark">{displayMonth}</span>
+	<div class="relative flex-1 flex justify-center items-center h-10 overflow-hidden">
+		{#key displayMonth}
+			<span in:fade={{ duration: 150 }} class="absolute text-base font-semibold text-text-light dark:text-text-dark whitespace-nowrap">{displayMonth}</span>
+		{/key}
+	</div>
 
 	<button
 		class="flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-surface-dark/5 dark:hover:bg-surface-light/10 text-text-light/60 hover:text-text-light dark:text-text-dark/60 dark:hover:text-text-dark"

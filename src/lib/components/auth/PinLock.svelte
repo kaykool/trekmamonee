@@ -109,28 +109,33 @@
 		<div class="flex w-full flex-col items-center gap-6 px-8" style="max-width: 20rem;">
 			<!-- Lock icon -->
 			<div class="mb-2 flex flex-col items-center gap-3">
-				<div
-					class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="28"
-						height="28"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path
-							d="M7 11V7a5 5 0 0 1 10 0v4"
-						/></svg
+				<div class="relative flex h-20 w-20 items-center justify-center">
+					<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-primary/5 blur-lg"></div>
+					<div
+						class="relative flex h-16 w-16 items-center justify-center rounded-full bg-surface-light dark:bg-surface-dark text-primary shadow-sm ring-1 ring-surface-dark/5 dark:ring-surface-light/5"
 					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="28"
+							height="28"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path
+								d="M7 11V7a5 5 0 0 1 10 0v4"
+							/></svg
+						>
+					</div>
 				</div>
-				<h1 class="text-xl font-semibold text-text-light dark:text-text-dark">
-					Unlock Trekmamonee
-				</h1>
-				<p class="text-sm text-text-light/50 dark:text-text-dark/50">Enter your 6-digit PIN</p>
+				<div class="flex flex-col items-center gap-1 mt-1">
+					<h1 class="text-2xl font-bold tracking-tight text-text-light dark:text-text-dark">
+						Trekmamonee
+					</h1>
+					<p class="text-sm font-medium text-text-light/50 dark:text-text-dark/50">Enter PIN to unlock</p>
+				</div>
 			</div>
 
 			<!-- PIN dots -->
@@ -156,6 +161,7 @@
 			<div class="grid w-full grid-cols-3 place-items-center gap-y-3 select-none">
 				{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as num (num)}
 					<button
+						aria-label="Digit {num}"
 						class="pin-key flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full text-2xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
 						onclick={() => handleInput(num.toString())}
 					>
@@ -164,6 +170,7 @@
 				{/each}
 				<div></div>
 				<button
+					aria-label="Digit 0"
 					class="pin-key flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full text-2xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
 					onclick={() => handleInput('0')}
 				>
@@ -229,6 +236,7 @@
 		<div class="grid w-full grid-cols-3 place-items-center gap-y-2 select-none">
 			{#each [1, 2, 3, 4, 5, 6, 7, 8, 9] as num (num)}
 				<button
+					aria-label="Digit {num}"
 					class="pin-key flex h-16 w-16 items-center justify-center rounded-full text-xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
 					onclick={() => handleInput(num.toString())}
 				>
@@ -242,6 +250,7 @@
 				Cancel
 			</button>
 			<button
+				aria-label="Digit 0"
 				class="pin-key flex h-16 w-16 items-center justify-center rounded-full text-xl font-medium text-text-light transition-all active:scale-90 dark:text-text-dark"
 				onclick={() => handleInput('0')}
 			>

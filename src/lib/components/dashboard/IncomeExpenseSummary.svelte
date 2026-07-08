@@ -10,13 +10,13 @@
 	} = $props();
 </script>
 
-<div class="grid grid-cols-3 gap-3">
+<div class="flex flex-col gap-3">
 	<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
 		<span
 			class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
 			>Income</span
 		>
-		<span class="text-sm md:text-base font-bold text-primary truncate"
+		<span class="text-lg font-bold text-primary"
 			>{formatIDR(monthSummary.totalIncome)}</span
 		>
 	</Card>
@@ -25,7 +25,7 @@
 			class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
 			>Expenses</span
 		>
-		<span class="text-sm md:text-base font-bold text-danger truncate"
+		<span class="text-lg font-bold text-danger"
 			>{formatIDR(monthSummary.totalExpense)}</span
 		>
 	</Card>
@@ -35,7 +35,7 @@
 			>Balance</span
 		>
 		<span
-			class="text-sm md:text-base font-bold truncate {monthSummary.balance >= 0
+			class="text-lg font-bold {monthSummary.balance >= 0
 				? 'text-primary'
 				: 'text-danger'}"
 		>

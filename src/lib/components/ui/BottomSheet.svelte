@@ -22,12 +22,13 @@
 
 {#if isOpen}
 	<!-- Backdrop -->
-	<button
+	<div
+		role="presentation"
 		class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm cursor-default border-none outline-none w-full h-full"
-		aria-label="Close Bottom Sheet"
 		onclick={close}
+		onkeydown={(e) => e.key === 'Escape' && close()}
 		transition:fade={{ duration: 200, easing: cubicOut }}
-	></button>
+	></div>
 
 	<!-- Sheet -->
 	<div
