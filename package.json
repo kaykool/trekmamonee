@@ -47,7 +47,6 @@
 	},
 	"dependencies": {
 		"@tanstack/svelte-query": "^6.1.36",
-		"bcryptjs": "^3.0.3",
 		"chart.js": "^4.5.1",
 		"dexie": "^4.4.4",
 		"uuid": "^14.0.1",

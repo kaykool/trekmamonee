@@ -22,13 +22,14 @@
   let selectedCategoryId = $state<string>('');
 
   let isSaving = $state(false);
-  let isLoading = $state(!!transactionId);
+  let isLoading = $state(false);
   
   let originalCreatedAt = $state<number>(Date.now());
 
   // Load existing transaction if ID is provided
   $effect(() => {
     if (transactionId) {
+      isLoading = true;
       async function loadTx() {
         try {
           const tx = await db.transactions.get(transactionId as string);

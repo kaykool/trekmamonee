@@ -8,45 +8,56 @@
   import TransactionForm from '$lib/components/transactions/TransactionForm.svelte';
   import Toast from '$lib/components/ui/Toast.svelte';
   import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+  import PinLock from '$lib/components/auth/PinLock.svelte';
   import { uiState, closeTransactionSheet, closeConfirmDialog } from '$lib/state/ui.svelte';
+  import { pinStore } from '$lib/stores/pin.svelte';
   import '$lib/db/seed';
 
 	let { children } = $props();
+
+  function handleVisibilityChange() {
+    if (document.visibilityState === 'hidden') {
+      pinStore.lock();
+    }
+  }
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:document onvisibilitychange={handleVisibilityChange} />
 
-<div class="relative min-h-screen w-full bg-bg-light dark:bg-bg-dark selection:bg-primary/30">
-  <Header />
-  
-  <main class="mx-auto w-full max-w-2xl px-4 py-6">
-    {@render children()}
-  </main>
-  
-  <FAB />
-  <BottomNav />
+<PinLock mode="verify">
+  <div class="relative min-h-screen w-full bg-bg-light dark:bg-bg-dark selection:bg-primary/30 pb-16">
+    <Header />
+    
+    <main class="mx-auto w-full max-w-2xl px-4 py-6">
+      {@render children()}
+    </main>
+    
+    <FAB />
+    <BottomNav />
 
-  <!-- Global Forms -->
-  <BottomSheet 
-    isOpen={uiState.isTransactionSheetOpen} 
-    onclose={closeTransactionSheet}
-    title={uiState.editingTransactionId ? "Edit Transaction" : "New Transaction"}
-  >
-    <TransactionForm transactionId={uiState.editingTransactionId} />
-  </BottomSheet>
+    <!-- Global Forms -->
+    <BottomSheet 
+      isOpen={uiState.isTransactionSheetOpen} 
+      onclose={closeTransactionSheet}
+      title={uiState.editingTransactionId ? "Edit Transaction" : "New Transaction"}
+    >
+      <TransactionForm transactionId={uiState.editingTransactionId} />
+    </BottomSheet>
 
-  <ConfirmDialog
-    isOpen={uiState.confirmDialog.isOpen}
-    title={uiState.confirmDialog.title}
-    description={uiState.confirmDialog.description}
-    confirmText={uiState.confirmDialog.confirmText}
-    isDestructive={uiState.confirmDialog.isDestructive}
-    onconfirm={() => {
-      uiState.confirmDialog.onconfirm();
-      closeConfirmDialog();
-    }}
-    oncancel={closeConfirmDialog}
-  />
+    <ConfirmDialog
+      isOpen={uiState.confirmDialog.isOpen}
+      title={uiState.confirmDialog.title}
+      description={uiState.confirmDialog.description}
+      confirmText={uiState.confirmDialog.confirmText}
+      isDestructive={uiState.confirmDialog.isDestructive}
+      onconfirm={() => {
+        uiState.confirmDialog.onconfirm();
+        closeConfirmDialog();
+      }}
+      oncancel={closeConfirmDialog}
+    />
 
-  <Toast />
-</div>
+    <Toast />
+  </div>
+</PinLock>
