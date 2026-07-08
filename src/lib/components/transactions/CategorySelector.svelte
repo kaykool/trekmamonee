@@ -154,13 +154,12 @@
 	</div>
 	<div class="grid grid-cols-4 gap-3 content-start">
 		{#each categories as category (category.id)}
-			<div
-				role="button"
-				tabindex="0"
+			<button
+				type="button"
 				class="group relative flex flex-col items-center justify-center gap-2 rounded-xl p-3 transition-all {selectedCategoryId ===
 					category.id && !isEditingCategories
 					? 'bg-background dark:bg-background-dark shadow-sm ring-2 ring-primary/50'
-					: 'bg-surface-dark/5 hover:bg-surface-dark/10 dark:bg-surface-light/5 dark:hover:bg-surface-light/10'} cursor-pointer"
+					: 'bg-surface-dark/5 hover:bg-surface-dark/10 dark:bg-surface-light/5 dark:hover:bg-surface-light/10'} cursor-pointer w-full text-left"
 				onclick={(e) => {
 					e.preventDefault();
 					if (isEditingCategories) {
@@ -170,20 +169,10 @@
 						selectedCategoryId = category.id;
 					}
 				}}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault();
-						if (isEditingCategories) {
-							editingCategoryId = category.id;
-							editingCategoryName = category.name;
-						} else {
-							selectedCategoryId = category.id;
-						}
-					}
-				}}
 			>
 				{#if isEditingCategories}
 					<button
+						type="button"
 						class="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-background dark:bg-background-dark text-text-light/50 dark:text-text-dark/50 shadow-sm ring-1 ring-surface-dark/10 dark:ring-surface-light/10 hover:bg-danger hover:text-white hover:ring-danger transition-colors"
 						onclick={(e) => {
 							e.stopPropagation();
@@ -257,7 +246,7 @@
 							: 'text-text-light/80 dark:text-text-dark/80'}">{category.name}</span
 					>
 				{/if}
-			</div>
+			</button>
 		{/each}
 
 		{#if isEditingCategories}

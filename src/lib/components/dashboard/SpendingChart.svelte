@@ -1,95 +1,114 @@
 <script lang="ts">
 	import Card from '$lib/components/ui/Card.svelte';
-	import { chart } from '$lib/actions/chart';
-	import { TAILWIND_TO_HEX } from '$lib/constants';
+	import { Chart, registerables } from 'chart.js';
 	import type { CategoryTotal } from '$lib/db/queries';
-	import type { ChartConfiguration } from 'chart.js';
+	import { formatIDR, resolveTailwindColor } from '$lib/utils';
+
+	Chart.register(...registerables);
 
 	let {
-		breakdown,
-		isDark = false
+		categoryBreakdown,
+		totalExpense
 	}: {
-		breakdown: CategoryTotal[];
-		isDark?: boolean;
+		categoryBreakdown: CategoryTotal[];
+		totalExpense: number;
 	} = $props();
 
-	const formatCurrency = (amount: number) =>
-		new Intl.NumberFormat('id-ID', {
-			style: 'currency',
-			currency: 'IDR',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(amount);
+	let chartCanvas = $state<HTMLCanvasElement | null>(null);
+	let chartInstance: Chart | null = null;
 
-	let totalExpense = $derived(breakdown.reduce((sum, cat) => sum + cat.total, 0));
-
-	let chartConfig = $derived<ChartConfiguration<'doughnut'>>({
-		type: 'doughnut',
-		data: {
-			labels: breakdown.map((c) => c.categoryName),
-			datasets: [
-				{
-					data: breakdown.map((c) => c.total),
-					backgroundColor: breakdown.map((c) => TAILWIND_TO_HEX[c.color] || '#6b7280'),
-					borderWidth: 0,
-					hoverOffset: 8
-				}
-			]
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: true,
-			cutout: '65%',
-			plugins: {
-				legend: {
-					display: false // We use CategoryBreakdown component instead
+	$effect(() => {
+		if (chartCanvas && categoryBreakdown.length > 0) {
+			if (chartInstance) {
+				chartInstance.destroy();
+			}
+			chartInstance = new Chart(chartCanvas, {
+				type: 'doughnut',
+				data: {
+					labels: categoryBreakdown.map((c) => c.categoryName),
+					datasets: [
+						{
+							data: categoryBreakdown.map((c) => c.total),
+							backgroundColor: categoryBreakdown.map((c) => resolveTailwindColor(c.color)),
+							borderWidth: 2,
+							borderColor: 'transparent'
+						}
+					]
 				},
-				tooltip: {
-					backgroundColor: isDark ? '#1e293b' : '#ffffff',
-					titleColor: isDark ? '#e2e8f0' : '#1e293b',
-					bodyColor: isDark ? '#cbd5e1' : '#475569',
-					borderColor: isDark ? '#334155' : '#e2e8f0',
-					borderWidth: 1,
-					padding: 12,
-					callbacks: {
-						label: (ctx) => {
-							const value = ctx.parsed;
-							const pct = totalExpense > 0 ? ((value / totalExpense) * 100).toFixed(1) : '0';
-							return ` ${formatCurrency(value)} (${pct}%)`;
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					cutout: '75%',
+					plugins: {
+						legend: {
+							display: false
 						}
 					}
 				}
-			}
+			});
+		} else if (chartInstance) {
+			chartInstance.destroy();
+			chartInstance = null;
 		}
-	});
 
-	let hasData = $derived(breakdown.length > 0);
+		return () => {
+			if (chartInstance) {
+				chartInstance.destroy();
+				chartInstance = null;
+			}
+		};
+	});
 </script>
 
-<Card class="flex flex-col items-center gap-4">
-	<h2
-		class="self-start text-sm font-semibold uppercase tracking-wide text-text-light/60 dark:text-text-dark/60"
-	>
-		Spending Overview
+<Card class="flex flex-col gap-4 p-6 bg-surface-light dark:bg-surface-dark">
+	<h2 class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50">
+		SPENDING CHART
 	</h2>
 
-	{#if hasData}
-		<div class="relative mx-auto w-full max-w-[260px]">
-			<canvas use:chart={chartConfig}></canvas>
-
-			<!-- Center label -->
-			<div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-				<span class="text-xs text-text-light/50 dark:text-text-dark/50">Total</span>
-				<span class="text-lg font-bold text-text-light dark:text-text-dark">
-					{formatCurrency(totalExpense)}
-				</span>
-			</div>
+	{#if categoryBreakdown.length === 0}
+		<div class="flex flex-col items-center justify-center py-8">
+			<span class="text-text-light/50 dark:text-text-dark/50">No expenses this month</span>
 		</div>
 	{:else}
-		<div class="flex aspect-square w-full max-w-[260px] items-center justify-center">
-			<span class="text-sm text-text-light/40 dark:text-text-dark/40">
-				No expenses this month
-			</span>
+		<div class="relative flex items-center justify-center h-48 md:h-56">
+			<canvas bind:this={chartCanvas}></canvas>
+			<div class="absolute flex flex-col items-center justify-center text-center">
+				<span class="text-xs font-medium text-text-light/50 dark:text-text-dark/50">Total</span>
+				<span class="text-xl font-bold text-text-light dark:text-text-dark"
+					>{formatIDR(totalExpense)}</span
+				>
+			</div>
+		</div>
+
+		<!-- Category Breakdown -->
+		<div class="flex flex-col gap-4 mt-2">
+			<h3 class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50">
+				BY CATEGORY
+			</h3>
+			<div class="flex flex-col gap-3">
+				{#each categoryBreakdown as item (item.categoryId)}
+					<div class="flex items-center justify-between">
+						<div class="flex items-center gap-3">
+							<div
+								class="flex h-8 w-8 items-center justify-center rounded-full {item.color} text-base text-white"
+							>
+								{item.icon}
+							</div>
+							<span class="text-sm font-semibold text-text-light dark:text-text-dark"
+								>{item.categoryName}</span
+							>
+						</div>
+						<div class="flex flex-col items-end">
+							<span class="text-sm font-bold text-text-light dark:text-text-dark"
+								>{formatIDR(item.total)}</span
+							>
+							<span class="text-xs text-text-light/50 dark:text-text-dark/50"
+								>{item.percentage.toFixed(0)}%</span
+							>
+						</div>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </Card>

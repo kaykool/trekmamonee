@@ -1,8 +1,211 @@
 <script lang="ts">
 	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { db, type Transaction } from '$lib/db';
+	import { liveQuery } from 'dexie';
+	import { Chart, registerables } from 'chart.js';
+	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
+	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
+
+	Chart.register(...registerables);
 
 	let view = $state<'weekly' | 'monthly'>('weekly');
+	let currentDate = new SvelteDate();
+
+	function getWeekRange(date: Date) {
+		const current = new SvelteDate(date);
+		const day = current.getDay();
+		const diff = current.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+		const start = new SvelteDate(current.setDate(diff));
+		start.setHours(0, 0, 0, 0);
+
+		const end = new SvelteDate(start);
+		end.setDate(start.getDate() + 6);
+		end.setHours(23, 59, 59, 999);
+
+		return { start, end };
+	}
+
+	let dateLabel = $derived.by(() => {
+		if (view === 'weekly') {
+			const { start, end } = getWeekRange(currentDate);
+			const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+			return `${start.toLocaleDateString('default', options)} - ${end.toLocaleDateString('default', options)}`;
+		} else {
+			return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+		}
+	});
+
+	function prev() {
+		if (view === 'weekly') {
+			currentDate.setDate(currentDate.getDate() - 7);
+		} else {
+			currentDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+		}
+	}
+
+	function next() {
+		if (view === 'weekly') {
+			currentDate.setDate(currentDate.getDate() + 7);
+		} else {
+			currentDate.setFullYear(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+		}
+	}
+
+	let summary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
+	let breakdown = $state<CategoryTotal[]>([]);
+
+	// Reactive subscription to Dexie data based on view & date
+	$effect(() => {
+		const currentView = view;
+		const dateObj = currentDate;
+
+		const sub = liveQuery(async () => {
+			let transactions: Transaction[];
+
+			if (currentView === 'weekly') {
+				const { start, end } = getWeekRange(dateObj);
+				const startStr = start.toISOString().split('T')[0];
+				const endStr = end.toISOString().split('T')[0];
+				transactions = await db.transactions
+					.where('date')
+					.between(startStr, endStr, true, true)
+					.toArray();
+			} else {
+				const year = dateObj.getFullYear();
+				const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+				const monthPrefix = `${year}-${month}`;
+				transactions = await db.transactions
+					.where('date')
+					.startsWith(monthPrefix)
+					.toArray();
+			}
+
+			const categoriesList = await db.categories.toArray();
+			const categoryMap = new SvelteMap(categoriesList.map((c) => [c.id, c]));
+
+			let totalIncome = 0;
+			let totalExpense = 0;
+			const categoryTotals = new SvelteMap<string, number>();
+
+			for (const tx of transactions) {
+				if (tx.type === 'income') {
+					totalIncome += tx.amount;
+				} else {
+					totalExpense += tx.amount;
+					categoryTotals.set(tx.categoryId, (categoryTotals.get(tx.categoryId) || 0) + tx.amount);
+				}
+			}
+
+			const list: CategoryTotal[] = [];
+			for (const [categoryId, total] of categoryTotals) {
+				const cat = categoryMap.get(categoryId);
+				list.push({
+					categoryId,
+					categoryName: cat?.name || 'Unknown',
+					icon: cat?.icon || '🏷️',
+					color: cat?.color || 'bg-gray-500',
+					total,
+					percentage: totalExpense > 0 ? (total / totalExpense) * 100 : 0
+				});
+			}
+			list.sort((a, b) => b.total - a.total);
+
+			return {
+				summary: { totalIncome, totalExpense, balance: totalIncome - totalExpense },
+				breakdown: list
+			};
+		}).subscribe((data) => {
+			if (data) {
+				summary = data.summary;
+				breakdown = data.breakdown;
+			}
+		});
+
+		return () => sub.unsubscribe();
+	});
+
+	// Chart rendering logic
+	let chartCanvas = $state<HTMLCanvasElement | null>(null);
+	let chartInstance: Chart | null = null;
+
+	function resolveTailwindColor(className: string): string {
+		const map: Record<string, string> = {
+			'bg-red-500': '#ef4444',
+			'bg-blue-500': '#3b82f6',
+			'bg-green-500': '#22c55e',
+			'bg-yellow-500': '#eab308',
+			'bg-purple-500': '#a855f7',
+			'bg-pink-500': '#ec4899',
+			'bg-indigo-500': '#6366f1',
+			'bg-teal-500': '#14b8a6',
+			'bg-gray-500': '#6b7280',
+			'bg-primary-light': '#818cf8',
+			'bg-primary-dark': '#4f46e5'
+		};
+		return map[className] || className.replace('bg-', '#');
+	}
+
+	$effect(() => {
+		if (chartCanvas && breakdown.length > 0) {
+			if (chartInstance) {
+				chartInstance.destroy();
+			}
+			chartInstance = new Chart(chartCanvas, {
+				type: 'bar',
+				data: {
+					labels: breakdown.map((b) => b.categoryName),
+					datasets: [
+						{
+							label: 'Spending',
+							data: breakdown.map((b) => b.total),
+							backgroundColor: breakdown.map((b) => resolveTailwindColor(b.color)),
+							borderRadius: 8,
+							borderWidth: 0
+						}
+					]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					plugins: {
+						legend: {
+							display: false
+						}
+					},
+					scales: {
+						y: {
+							beginAtZero: true,
+							grid: {
+								color: 'rgba(0,0,0,0.05)'
+							}
+						},
+						x: {
+							grid: {
+								display: false
+							}
+						}
+					}
+				}
+			});
+		} else if (chartInstance) {
+			chartInstance.destroy();
+			chartInstance = null;
+		}
+
+		return () => {
+			if (chartInstance) {
+				chartInstance.destroy();
+				chartInstance = null;
+			}
+		};
+	});
+
+	function formatIDR(amount: number) {
+		const formattedVal = Math.abs(amount).toLocaleString('id-ID');
+		const sign = amount < 0 ? '-' : '';
+		return `${sign}Rp ${formattedVal}`;
+	}
 </script>
 
 <svelte:head>
@@ -30,8 +233,9 @@
 		</button>
 	</div>
 
+	<!-- Date Navigation -->
 	<div class="flex items-center justify-between">
-		<Button variant="ghost" size="icon">
+		<Button variant="ghost" size="icon" onclick={prev}>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="20"
@@ -41,13 +245,12 @@
 				stroke="currentColor"
 				stroke-width="2"
 				stroke-linecap="round"
-				stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
+				stroke-linejoin="round"
+				><path d="m15 18-6-6 6-6" /></svg
 			>
 		</Button>
-		<span class="font-medium text-text-light dark:text-text-dark"
-			>Current {view === 'weekly' ? 'Week' : 'Month'}</span
-		>
-		<Button variant="ghost" size="icon">
+		<span class="font-semibold text-text-light dark:text-text-dark">{dateLabel}</span>
+		<Button variant="ghost" size="icon" onclick={next}>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				width="20"
@@ -57,12 +260,84 @@
 				stroke="currentColor"
 				stroke-width="2"
 				stroke-linecap="round"
-				stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg
+				stroke-linejoin="round"
+				><path d="m9 18 6-6-6-6" /></svg
 			>
 		</Button>
 	</div>
 
-	<Card class="flex aspect-video items-center justify-center">
-		<span class="text-text-light/50 dark:text-text-dark/50">Chart Placeholder</span>
+	<!-- Financial Overview Cards -->
+	<div class="grid grid-cols-3 gap-3">
+		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
+			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+				>INCOME</span
+			>
+			<span class="text-xs md:text-sm font-bold text-primary truncate"
+				>{formatIDR(summary.totalIncome)}</span
+			>
+		</Card>
+		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
+			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+				>EXPENSE</span
+			>
+			<span class="text-xs md:text-sm font-bold text-danger truncate"
+				>{formatIDR(summary.totalExpense)}</span
+			>
+		</Card>
+		<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
+			<span class="text-[10px] font-bold tracking-wider text-text-light/50 dark:text-text-dark/50"
+				>SAVINGS</span
+			>
+			<span
+				class="text-xs md:text-sm font-bold truncate {summary.balance >= 0
+					? 'text-primary'
+					: 'text-danger'}"
+			>
+				{formatIDR(summary.balance)}
+			</span>
+		</Card>
+	</div>
+
+	<!-- Spending Chart -->
+	<Card class="flex flex-col gap-4 p-6 bg-surface-light dark:bg-surface-dark">
+		<h2 class="text-xs font-bold tracking-wider text-text-light/50 dark:text-text-dark/50">
+			SPENDING ANALYSIS
+		</h2>
+
+		{#if breakdown.length === 0}
+			<div class="flex flex-col items-center justify-center py-8">
+				<span class="text-text-light/50 dark:text-text-dark/50">No expenses in this period</span>
+			</div>
+		{:else}
+			<div class="relative h-56 w-full">
+				<canvas bind:this={chartCanvas}></canvas>
+			</div>
+
+			<!-- Category breakdown rows -->
+			<div class="flex flex-col gap-3 mt-4">
+				{#each breakdown as item (item.categoryId)}
+					<div class="flex flex-col gap-1">
+						<div class="flex items-center justify-between text-sm">
+							<span class="font-medium text-text-light dark:text-text-dark"
+								>{item.icon} {item.categoryName}</span
+							>
+							<div class="text-right font-semibold">
+								<span class="text-text-light dark:text-text-dark">{formatIDR(item.total)}</span>
+								<span class="text-xs text-text-light/50 dark:text-text-dark/50 ml-2"
+									>{item.percentage.toFixed(0)}%</span
+								>
+							</div>
+						</div>
+						<!-- Progress bar -->
+						<div class="h-2 w-full bg-surface-dark/10 rounded-full dark:bg-surface-light/10 overflow-hidden">
+							<div
+								class="h-full rounded-full transition-all duration-300 {item.color}"
+								style="width: {item.percentage}%"
+							></div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</Card>
 </div>
