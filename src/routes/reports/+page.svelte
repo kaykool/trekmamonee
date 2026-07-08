@@ -29,7 +29,11 @@
 	let dateLabel = $derived.by(() => {
 		if (view === 'weekly') {
 			const { start, end } = getWeekRange(currentDate);
-			const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+			const options: Intl.DateTimeFormatOptions = {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			};
 			return `${start.toLocaleDateString('default', options)} - ${end.toLocaleDateString('default', options)}`;
 		} else {
 			return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -75,10 +79,7 @@
 				const year = dateObj.getFullYear();
 				const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
 				const monthPrefix = `${year}-${month}`;
-				transactions = await db.transactions
-					.where('date')
-					.startsWith(monthPrefix)
-					.toArray();
+				transactions = await db.transactions.where('date').startsWith(monthPrefix).toArray();
 			}
 
 			const categoriesList = await db.categories.toArray();
@@ -209,7 +210,7 @@
 </script>
 
 <svelte:head>
-	<title>Reports | Expense Tracker</title>
+	<title>Reports | Trekmamonee</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">
@@ -245,8 +246,7 @@
 				stroke="currentColor"
 				stroke-width="2"
 				stroke-linecap="round"
-				stroke-linejoin="round"
-				><path d="m15 18-6-6 6-6" /></svg
+				stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
 			>
 		</Button>
 		<span class="font-semibold text-text-light dark:text-text-dark">{dateLabel}</span>
@@ -260,8 +260,7 @@
 				stroke="currentColor"
 				stroke-width="2"
 				stroke-linecap="round"
-				stroke-linejoin="round"
-				><path d="m9 18 6-6-6-6" /></svg
+				stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg
 			>
 		</Button>
 	</div>
@@ -329,7 +328,9 @@
 							</div>
 						</div>
 						<!-- Progress bar -->
-						<div class="h-2 w-full bg-surface-dark/10 rounded-full dark:bg-surface-light/10 overflow-hidden">
+						<div
+							class="h-2 w-full bg-surface-dark/10 rounded-full dark:bg-surface-light/10 overflow-hidden"
+						>
 							<div
 								class="h-full rounded-full transition-all duration-300 {item.color}"
 								style="width: {item.percentage}%"

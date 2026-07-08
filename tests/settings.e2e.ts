@@ -76,7 +76,7 @@ test.describe('Settings & PIN Lock', () => {
 		});
 
 		// Modal should appear
-		await expect(page.getByText('Unlock Expense Tracker')).toBeVisible();
+		await expect(page.getByText('Unlock Trekmamonee')).toBeVisible();
 		await page.waitForTimeout(1000); // Wait for fade in
 
 		// Unlock
@@ -85,7 +85,7 @@ test.describe('Settings & PIN Lock', () => {
 		}
 
 		// Should be back to settings
-		await expect(page.getByText('Unlock Expense Tracker')).not.toBeVisible();
+		await expect(page.getByText('Unlock Trekmamonee')).not.toBeVisible();
 	});
 
 	test('can open category management', async ({ page }) => {

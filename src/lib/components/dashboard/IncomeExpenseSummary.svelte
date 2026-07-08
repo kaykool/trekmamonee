@@ -12,7 +12,8 @@
 
 <div class="grid grid-cols-3 gap-3">
 	<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-		<span class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
+		<span
+			class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
 			>Income</span
 		>
 		<span class="text-sm md:text-base font-bold text-primary truncate"
@@ -20,7 +21,8 @@
 		>
 	</Card>
 	<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-		<span class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
+		<span
+			class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
 			>Expenses</span
 		>
 		<span class="text-sm md:text-base font-bold text-danger truncate"
@@ -28,7 +30,8 @@
 		>
 	</Card>
 	<Card class="flex flex-col gap-1 p-4 bg-surface-light dark:bg-surface-dark">
-		<span class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
+		<span
+			class="text-xs font-semibold tracking-wider uppercase text-text-light/50 dark:text-text-dark/50"
 			>Balance</span
 		>
 		<span

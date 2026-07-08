@@ -103,7 +103,7 @@
 </script>
 
 <svelte:head>
-	<title>History | Expense Tracker</title>
+	<title>History | Trekmamonee</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">

@@ -22,7 +22,7 @@ DON'T:
 ```ts
 // Using `any` disables TypeScript's safety checks for component rest props
 export interface Props {
-    [key: string]: any;
+	[key: string]: any;
 }
 ```
 
@@ -31,7 +31,7 @@ DO:
 ```ts
 // Use `unknown` to ensure type safety while allowing rest props
 export interface Props {
-    [key: string]: unknown;
+	[key: string]: unknown;
 }
 ```
 
@@ -44,7 +44,7 @@ DON'T:
 ```svelte
 <!-- Missing key causes svelte/require-each-key lint error -->
 {#each items as item}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 ```
 
@@ -53,7 +53,7 @@ DO:
 ```svelte
 <!-- Always provide a unique key for the loop -->
 {#each items as item (item.id)}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 ```
 

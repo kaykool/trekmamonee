@@ -104,7 +104,7 @@
 </script>
 
 <svelte:head>
-	<title>Edit Transaction | Expense Tracker</title>
+	<title>Edit Transaction | Trekmamonee</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">

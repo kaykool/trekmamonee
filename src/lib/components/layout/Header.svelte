@@ -10,7 +10,7 @@
 		'/settings': 'Settings'
 	};
 
-	let title = $derived(titles[page.url.pathname] || 'Expense Tracker');
+	let title = $derived(titles[page.url.pathname] || 'Trekmamonee');
 </script>
 
 <header

@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings | Expense Tracker</title>
+	<title>Settings | Trekmamonee</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">

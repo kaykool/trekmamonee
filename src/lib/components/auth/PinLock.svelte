@@ -128,11 +128,9 @@
 					>
 				</div>
 				<h1 class="text-xl font-semibold text-text-light dark:text-text-dark">
-					Unlock Expense Tracker
+					Unlock Trekmamonee
 				</h1>
-				<p class="text-sm text-text-light/50 dark:text-text-dark/50">
-					Enter your 6-digit PIN
-				</p>
+				<p class="text-sm text-text-light/50 dark:text-text-dark/50">Enter your 6-digit PIN</p>
 			</div>
 
 			<!-- PIN dots -->

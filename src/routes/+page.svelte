@@ -98,7 +98,7 @@
 </script>
 
 <svelte:head>
-	<title>Dashboard | Expense Tracker</title>
+	<title>Dashboard | Trekmamonee</title>
 </svelte:head>
 
 <div class="flex flex-col gap-6">
