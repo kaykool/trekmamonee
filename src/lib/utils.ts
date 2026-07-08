@@ -15,3 +15,11 @@ export function formatIDR(amount: number): string {
 export function resolveTailwindColor(className: string): string {
 	return TAILWIND_TO_HEX[className] || className.replace('bg-', '#');
 }
+
+/**
+ * Returns today's date formatted as YYYY-MM-DD in the local timezone.
+ */
+export function getLocalDateString(dateObj: Date = new Date()): string {
+	const tzOffset = dateObj.getTimezoneOffset() * 60000;
+	return new Date(dateObj.getTime() - tzOffset).toISOString().split('T')[0];
+}

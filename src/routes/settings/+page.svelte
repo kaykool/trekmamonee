@@ -143,7 +143,7 @@
 							></span>
 						{/if}
 					</div>
-					<span class="text-xs text-text-light/60 dark:text-text-dark/60">
+					<span class="text-xs text-text-light/60 dark:text-text-dark/60" data-testid="last-backup-time">
 						{lastSync ? getRelativeTime(lastSync) : 'Never'}
 						{#if syncStore.hasUnsyncedChanges}
 							<span class="text-warning font-medium ml-1">(Unsynced changes)</span>

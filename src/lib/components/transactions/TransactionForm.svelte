@@ -8,6 +8,7 @@
 	import { db, generateId, type TransactionType } from '$lib/db';
 	import { closeTransactionSheet, addToast } from '$lib/state/ui.svelte';
 	import { APP_CONFIG } from '$lib/constants';
+	import { getLocalDateString } from '$lib/utils';
 
 	let {
 		transactionId = null
@@ -19,7 +20,7 @@
 	let amount = $state<number | undefined>();
 	let amountText = $state<string>('');
 	let itemName = $state('');
-	let date = $state(new Date().toISOString().split('T')[0]);
+	let date = $state(getLocalDateString());
 	let selectedCategoryId = $state<string>('');
 
 	let isSaving = $state(false);

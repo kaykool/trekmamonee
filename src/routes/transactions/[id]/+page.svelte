@@ -6,13 +6,14 @@
 	import { page } from '$app/stores';
 	import { db, type TransactionType, type Category } from '$lib/db';
 	import { liveQuery } from 'dexie';
+	import { getLocalDateString } from '$lib/utils';
 
 	let txId = $page.params.id as string;
 
 	let type = $state<TransactionType>('expense');
 	let amount = $state<number | undefined>();
 	let itemName = $state('');
-	let date = $state(new Date().toISOString().split('T')[0]);
+	let date = $state(getLocalDateString());
 	let selectedCategoryId = $state<string>('');
 
 	let categories = $state<Category[]>([]);
@@ -183,7 +184,7 @@
 			>
 			<Button
 				variant={type === 'expense' ? 'danger' : 'primary'}
-				class="flex-[2]"
+				class="flex-2"
 				onclick={handleSave}
 				disabled={isSaving}
 			>

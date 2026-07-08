@@ -5,7 +5,9 @@ test.describe('Cloud Sync', () => {
 		// Mock cloud password in localStorage to show the sync UI
 		await page.addInitScript(() => {
 			window.localStorage.setItem('cloud_sync_password', 'test-password');
+			window.localStorage.setItem('has_unsynced_changes', 'true');
 		});
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/settings');
 	});
 
@@ -21,7 +23,7 @@ test.describe('Cloud Sync', () => {
 		});
 
 		// Verify initial state
-		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).toContainText('Never');
+		await expect(page.getByTestId('last-backup-time')).toContainText('Never');
 
 		// Click Backup
 		const backupButton = page.getByRole('button', { name: 'Backup' });
@@ -31,7 +33,7 @@ test.describe('Cloud Sync', () => {
 		await expect(backupButton).toHaveText('Backup');
 
 		// Last backup time should update
-		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).not.toContainText('Never');
+		await expect(page.getByTestId('last-backup-time')).not.toContainText('Never');
 	});
 
 	test('Happy Path: Restore from Cloud', async ({ page }) => {
@@ -80,7 +82,7 @@ test.describe('Cloud Sync', () => {
 		await expect(backupButton).toBeEnabled();
 
 		// Last backup time should still be Never (since it failed)
-		await expect(page.locator('div').filter({ hasText: 'Last backup' }).locator('span').last()).toContainText('Never');
+		await expect(page.getByTestId('last-backup-time')).toContainText('Never');
 	});
 
 	test('Edge Case: Restore with invalid data from cloud', async ({ page }) => {

@@ -6,6 +6,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 	});
 
 	test('Happy Path: Add an expense and verify it appears in history', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 
@@ -13,12 +14,13 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
 
 		// Fill in amount and item name
-		await page.fill('input[type="number"]', '50000');
-		await page.fill('input[type="text"]', 'Nasi Goreng');
+		await page.fill('input[inputmode="numeric"]', '50000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Nasi Goreng');
 
 		// Click on the first category (Food & Dining should be seeded)
 		// The button contains the icon and name, we can select the first button in the grid
 		const firstCategory = page.locator('.grid [role="button"]').first();
+		await firstCategory.waitFor({ state: 'visible' });
 		await firstCategory.click();
 
 		// Click Save
@@ -36,6 +38,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 	});
 
 	test('Happy Path: Add an income and verify it appears in history', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 
@@ -46,11 +49,13 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await page.waitForTimeout(300);
 
 		// Fill in amount and item name
-		await page.fill('input[type="number"]', '1000000');
-		await page.fill('input[type="text"]', 'Gaji');
+		await page.fill('input[inputmode="numeric"]', '1000000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Gaji');
 
 		// Click on the first category (Salary)
-		await page.locator('.grid [role="button"]').first().click();
+		const firstCategory = page.locator('.grid [role="button"]').first();
+		await firstCategory.waitFor({ state: 'visible' });
+		await firstCategory.click();
 
 		// Click Save
 		await page.locator('button:has-text("Save income")').click();
@@ -66,6 +71,7 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 	});
 
 	test('Sad Path: Cannot save transaction with zero or empty amount', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 
@@ -79,29 +85,33 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		// We should still be on the form modal
 		await expect(page.locator('h2:has-text("New Transaction")')).toBeVisible();
 
-		// Try with a negative number manually typed
-		await page.fill('input[type="number"]', '-500');
-		await page.locator('button:has-text("Save expense")').click();
-		await expect(errorMessage).toBeVisible();
+		// Try typing non-digits and negative signs to verify sanitization
+		await page.fill('input[inputmode="numeric"]', '-500abc');
+		await expect(page.locator('input[inputmode="numeric"]')).toHaveValue('500');
 	});
 
 	test('Edge Case: Filtering transactions by type', async ({ page }) => {
 		// We need to add one expense and one income first
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
-		await page.fill('input[type="number"]', '10000');
-		await page.fill('input[type="text"]', 'Kopi');
-		await page.locator('.grid [role="button"]').first().click();
+		await page.fill('input[inputmode="numeric"]', '10000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Kopi');
+		const expCategory = page.locator('.grid [role="button"]').first();
+		await expCategory.waitFor({ state: 'visible' });
+		await expCategory.click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 		await page.getByRole('button', { name: 'Income', exact: true }).click();
 		await page.waitForTimeout(300);
-		await page.fill('input[type="number"]', '50000');
-		await page.fill('input[type="text"]', 'Bonus');
-		await page.locator('.grid [role="button"]').first().click();
+		await page.fill('input[inputmode="numeric"]', '50000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Bonus');
+		const incCategory = page.locator('.grid [role="button"]').first();
+		await incCategory.waitFor({ state: 'visible' });
+		await incCategory.click();
 		await page.locator('button:has-text("Save income")').click();
 
 		// Both should be visible initially (All Types)
@@ -121,12 +131,15 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 
 	test('Update (Edit): Can edit an existing transaction', async ({ page }) => {
 		// Add a transaction to edit
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
-		await page.fill('input[type="number"]', '20000');
-		await page.fill('input[type="text"]', 'Old Item');
-		await page.locator('.grid [role="button"]').first().click();
+		await page.fill('input[inputmode="numeric"]', '20000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Old Item');
+		const firstCategory = page.locator('.grid [role="button"]').first();
+		await firstCategory.waitFor({ state: 'visible' });
+		await firstCategory.click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		// Click the transaction to open the Action BottomSheet
@@ -139,12 +152,12 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		await expect(page.locator('h2:has-text("Edit Transaction")')).toBeVisible();
 
 		// Verify existing data is populated
-		await expect(page.locator('input[type="number"]')).toHaveValue('20000');
-		await expect(page.locator('input[type="text"]')).toHaveValue('Old Item');
+		await expect(page.locator('input[inputmode="numeric"]')).toHaveValue('20.000');
+		await expect(page.locator('input[type="text"]:not([inputmode="numeric"])')).toHaveValue('Old Item');
 
 		// Edit the data
-		await page.fill('input[type="number"]', '35000');
-		await page.fill('input[type="text"]', 'Updated Item');
+		await page.fill('input[inputmode="numeric"]', '35000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Updated Item');
 
 		// Save
 		await page.locator('button:has-text("Update expense")').click();
@@ -160,12 +173,15 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 
 	test('Delete: Can delete an existing transaction', async ({ page }) => {
 		// Add a transaction to delete
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
-		await page.fill('input[type="number"]', '99999');
-		await page.fill('input[type="text"]', 'To Be Deleted');
-		await page.locator('.grid [role="button"]').first().click();
+		await page.fill('input[inputmode="numeric"]', '99999');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'To Be Deleted');
+		const firstCategory = page.locator('.grid [role="button"]').first();
+		await firstCategory.waitFor({ state: 'visible' });
+		await firstCategory.click();
 		await page.locator('button:has-text("Save expense")').click();
 
 		// Verify it's there
@@ -189,15 +205,13 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 	});
 
 	test('Categories: Can create a new custom category and use it', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/transactions');
 		await page.getByRole('button', { name: 'Add Transaction' }).click();
 		await page.getByRole('button', { name: 'Expense', exact: true }).click();
 
-		// Click 'Edit categories'
-		await page.getByRole('button', { name: 'Edit categories' }).click();
-
-		// Click 'New' category button
-		await page.getByRole('button', { name: 'New' }).click();
+		// Click 'Add New' category button directly (it's permanently visible now)
+		await page.getByRole('button', { name: 'Add New' }).click();
 
 		// The category input is inside the grid
 		await page.locator('.grid input[type="text"]').fill('Gaming');
@@ -206,15 +220,14 @@ test.describe('Transaction CRUD & IndexedDB', () => {
 		// Wait a moment for indexedDB to update and input to disappear
 		await page.waitForTimeout(100);
 
-		// Done editing categories
-		await page.getByRole('button', { name: 'Done editing categories' }).click();
-
 		// Click on the newly created 'Gaming' category
-		await page.locator('.grid [role="button"]:has-text("Gaming")').click();
+		const gamingCategory = page.locator('.grid [role="button"]:has-text("Gaming")');
+		await gamingCategory.waitFor({ state: 'visible' });
+		await gamingCategory.click();
 
 		// Fill in amount to save transaction
-		await page.fill('input[type="number"]', '600000');
-		await page.fill('input[type="text"]', 'Steam Game');
+		await page.fill('input[inputmode="numeric"]', '600000');
+		await page.fill('input[type="text"]:not([inputmode="numeric"])', 'Steam Game');
 
 		await page.locator('button:has-text("Save expense")').click();
 

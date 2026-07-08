@@ -33,6 +33,7 @@ test.describe('Reports Page', () => {
 	});
 
 	test('Reports page loads and shows default empty state', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/reports');
 
 		// View toggles should exist
@@ -49,12 +50,14 @@ test.describe('Reports Page', () => {
 	});
 
 	test('Reports page updates after adding a transaction', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add an expense
 		await addTransaction(page, { type: 'expense', amount: '50000', name: 'Lunch' });
 
 		// Navigate to reports
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/reports');
 		await page.waitForTimeout(500);
 
@@ -74,11 +77,13 @@ test.describe('Reports Page', () => {
 	});
 
 	test('Changing views and weeks updates the data', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add an expense for the current week/month
 		await addTransaction(page, { type: 'expense', amount: '25000', name: 'Snack' });
 
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/reports');
 		await page.waitForTimeout(500);
 

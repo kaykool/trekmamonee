@@ -22,7 +22,7 @@
 </script>
 
 <div
-	class="fixed top-4 left-0 right-0 z-[100] flex flex-col items-center gap-2 px-4 pointer-events-none"
+	class="fixed top-4 left-0 right-0 z-100 flex flex-col items-center gap-2 px-4 pointer-events-none"
 >
 	{#each uiState.toasts as toast (toast.id)}
 		<div
@@ -33,7 +33,7 @@
 				toast.type
 			]}"
 		>
-			<div class="flex-shrink-0">
+			<div class="shrink-0">
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html typeIcons[toast.type]}
 			</div>

@@ -34,6 +34,7 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Dashboard loads with summary cards and empty states', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Month selector should be visible
@@ -53,12 +54,14 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Summary cards update after adding an expense', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add an expense
 		await addTransaction(page, { type: 'expense', amount: '75000', name: 'Lunch' });
 
 		// Navigate back to dashboard
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -71,12 +74,14 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Summary cards update after adding an income', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add income
 		await addTransaction(page, { type: 'income', amount: '2000000', name: 'Salary' });
 
 		// Navigate back to dashboard
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -85,12 +90,14 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Spending chart renders when expenses exist', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add an expense
 		await addTransaction(page, { type: 'expense', amount: '50000', name: 'Coffee' });
 
 		// Go to dashboard
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -106,12 +113,14 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Category breakdown shows category rows', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add two expenses in different categories
 		await addTransaction(page, { type: 'expense', amount: '100000', name: 'Groceries' });
 
 		// Go to dashboard
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -123,10 +132,12 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Recent transactions show latest items with View All link', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		await addTransaction(page, { type: 'expense', amount: '25000', name: 'Bus Ticket' });
 
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -143,11 +154,13 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Month navigation changes displayed data', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Add an expense for the current month
 		await addTransaction(page, { type: 'expense', amount: '30000', name: 'Snack' });
 
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 
@@ -170,10 +183,12 @@ test.describe('Dashboard & Charts', () => {
 	});
 
 	test('Clicking a recent transaction opens options bottom sheet', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		await addTransaction(page, { type: 'expense', amount: '15000', name: 'Taxi' });
 
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 		await page.waitForTimeout(500);
 

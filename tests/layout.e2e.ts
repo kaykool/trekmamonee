@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('App Layout Shell', () => {
 	test('should display correct title and navigation works', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		// Check initial title on Dashboard
@@ -30,6 +31,7 @@ test.describe('App Layout Shell', () => {
 	});
 
 	test('theme toggle should change element background color', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
 		const html = page.locator('html');

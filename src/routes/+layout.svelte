@@ -100,7 +100,8 @@
 		/>
 
 		<ReloadPrompt />
-		<Toast />
 	</div>
 	</PinLock>
 {/if}
+
+<Toast />

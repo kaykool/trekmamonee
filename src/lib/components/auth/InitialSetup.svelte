@@ -42,7 +42,7 @@
 </script>
 
 <div
-	class="fixed inset-0 z-100 flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark"
+	class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark"
 	in:fade
 >
 	<div class="flex w-full flex-col items-center gap-8 px-8" style="max-width: 24rem;">

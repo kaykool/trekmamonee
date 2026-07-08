@@ -4,10 +4,12 @@ test.describe('Settings & PIN Lock', () => {
 	test.beforeEach(async ({ page }) => {
 		page.on('console', (msg) => console.log('BROWSER:', msg.text()));
 		page.on('pageerror', (err) => console.log('BROWSER ERROR:', err.message));
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/settings');
 	});
 
 	test('can set and remove a 6-digit PIN', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/settings');
 
 		// Setup PIN
@@ -47,6 +49,7 @@ test.describe('Settings & PIN Lock', () => {
 	});
 
 	test('edge case: locking on visibility change', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/settings');
 
 		// Setup a PIN first
@@ -95,5 +98,46 @@ test.describe('Settings & PIN Lock', () => {
 		// Should render expense and income sections
 		await expect(page.getByText('Expenses', { exact: true })).toBeVisible();
 		await expect(page.getByText('Income', { exact: true })).toBeVisible();
+	});
+
+	test('Happy Path: Reset Data functionality', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
+		await page.goto('/settings');
+
+		// Click Reset Data
+		await page.getByRole('button', { name: 'Reset Data' }).click();
+
+		// Should show confirmation dialog
+		const dialog = page.getByRole('heading', { name: 'Reset App Data' });
+		await expect(dialog).toBeVisible();
+		await expect(page.locator('text=permanently delete all your transactions')).toBeVisible();
+
+		// Click Reset Data to confirm
+		// The button inside the dialog
+		await page.getByRole('button', { name: 'Reset Data', exact: true }).nth(1).click();
+
+		// Should show toast
+		await expect(page.locator('text=Data reset successful. Reloading...')).toBeVisible();
+	});
+
+	test('Sad Path: Cancel Reset Data', async ({ page }) => {
+		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
+		await page.goto('/settings');
+
+		// Click Reset Data
+		await page.getByRole('button', { name: 'Reset Data' }).click();
+
+		// Should show confirmation dialog
+		const dialog = page.getByRole('heading', { name: 'Reset App Data' });
+		await expect(dialog).toBeVisible();
+
+		// Click Cancel
+		await page.getByRole('button', { name: 'Cancel' }).click();
+
+		// Dialog should disappear
+		await expect(dialog).not.toBeVisible();
+		
+		// Toast should NOT appear
+		await expect(page.locator('text=Data reset successful')).not.toBeVisible();
 	});
 });

@@ -2,6 +2,18 @@
 	import { db, generateId, type TransactionType, type Category } from '$lib/db';
 	import { liveQuery } from 'dexie';
 	import { addToast, openConfirmDialog } from '$lib/state/ui.svelte';
+	import CategoryItem from './CategoryItem.svelte';
+
+	const CATEGORY_COLORS = [
+		'bg-red-500',
+		'bg-blue-500',
+		'bg-green-500',
+		'bg-yellow-500',
+		'bg-purple-500',
+		'bg-pink-500',
+		'bg-indigo-500',
+		'bg-teal-500'
+	];
 
 	let {
 		selectedCategoryId = $bindable(''),
@@ -19,9 +31,14 @@
 	let editingCategoryName = $state('');
 	let isProcessing = $state(false);
 
-	function focusOnMount(node: HTMLInputElement) {
-		node.focus();
-		node.select();
+
+	function handleCategorySelect(category: Category) {
+		if (isEditingCategories) {
+			editingCategoryId = category.id;
+			editingCategoryName = category.name;
+		} else {
+			selectedCategoryId = category.id;
+		}
 	}
 
 	async function handleCategoryRename(category: Category) {
@@ -70,19 +87,47 @@
 		}
 	}
 
-	async function moveCategory(category: Category, direction: -1 | 1) {
-		if (isProcessing) return;
+	let draggedIndex = $state<number | null>(null);
+	let hoverIndex = $state<number | null>(null);
+
+	function handleDragStart(e: DragEvent, index: number) {
+		if (!isEditingCategories) return;
+		draggedIndex = index;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.setData('text/plain', index.toString());
+		}
+	}
+
+	function handleDragOver(e: DragEvent, index: number) {
+		if (!isEditingCategories) return;
+		e.preventDefault();
+		if (e.dataTransfer) {
+			e.dataTransfer.dropEffect = 'move';
+		}
+		if (hoverIndex !== index) {
+			hoverIndex = index;
+		}
+	}
+
+	function handleDragLeave() {
+		hoverIndex = null;
+	}
+
+	async function handleDrop(e: DragEvent, targetIndex: number) {
+		if (!isEditingCategories || draggedIndex === null || isProcessing) return;
+		e.preventDefault();
 		
-		const index = categories.findIndex((c) => c.id === category.id);
-		if (index === -1) return;
-		const swapIndex = index + direction;
-		if (swapIndex < 0 || swapIndex >= categories.length) return;
+		if (draggedIndex === targetIndex) {
+			draggedIndex = null;
+			hoverIndex = null;
+			return;
+		}
 
 		isProcessing = true;
-		const targetCategory = categories[swapIndex];
 		const newCategories = [...categories];
-		newCategories[index] = targetCategory;
-		newCategories[swapIndex] = category;
+		const [draggedItem] = newCategories.splice(draggedIndex, 1);
+		newCategories.splice(targetIndex, 0, draggedItem);
 
 		try {
 			await db.transaction('rw', db.categories, async () => {
@@ -90,29 +135,26 @@
 					await db.categories.update(newCategories[i].id, { sortOrder: i });
 				}
 			});
-		} catch (e) {
-			console.error(e);
-			addToast('Failed to reorder', 'error');
+		} catch (error) {
+			console.error(error);
+			addToast('Failed to reorder categories', 'error');
 		} finally {
 			isProcessing = false;
+			draggedIndex = null;
+			hoverIndex = null;
 		}
+	}
+
+	function handleDragEnd() {
+		draggedIndex = null;
+		hoverIndex = null;
 	}
 
 	async function addNewCategory() {
 		if (isProcessing) return;
 		isProcessing = true;
 		
-		const colors = [
-			'bg-red-500',
-			'bg-blue-500',
-			'bg-green-500',
-			'bg-yellow-500',
-			'bg-purple-500',
-			'bg-pink-500',
-			'bg-indigo-500',
-			'bg-teal-500'
-		];
-		const randomColor = colors[Math.floor(Math.random() * colors.length)];
+		const randomColor = CATEGORY_COLORS[Math.floor(Math.random() * CATEGORY_COLORS.length)];
 
 		const newCat: Category = {
 			id: generateId(),
@@ -200,145 +242,30 @@
 	</div>
 	<div class="grid grid-cols-4 gap-3 content-start">
 		{#each categories as category (category.id)}
-			<div
-				role="button"
-				tabindex="0"
-				class="group relative flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl p-3 text-left transition-all {selectedCategoryId ===
-					category.id && !isEditingCategories
-					? 'bg-background shadow-sm ring-2 ring-primary/50 dark:bg-background-dark'
-					: 'bg-surface-dark/5 hover:bg-surface-dark/10 dark:bg-surface-light/5 dark:hover:bg-surface-light/10'}"
+			<CategoryItem
+				{category}
+				selected={selectedCategoryId === category.id}
+				isEditing={isEditingCategories}
+				isEditingThis={editingCategoryId === category.id}
+				bind:editingName={editingCategoryName}
+				dragged={draggedIndex === categories.indexOf(category)}
+				hovered={hoverIndex === categories.indexOf(category)}
 				onclick={(e) => {
 					e.preventDefault();
-					if (isEditingCategories) {
-						editingCategoryId = category.id;
-						editingCategoryName = category.name;
-					} else {
-						selectedCategoryId = category.id;
-					}
+					handleCategorySelect(category);
 				}}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault();
-						if (isEditingCategories) {
-							editingCategoryId = category.id;
-							editingCategoryName = category.name;
-						} else {
-							selectedCategoryId = category.id;
-						}
-					}
+				ondelete={(e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					promptDeleteCategory(category);
 				}}
-			>
-				{#if isEditingCategories}
-					<button
-						type="button"
-						class="absolute -top-1 -right-1 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-background text-text-light/50 shadow-sm ring-1 ring-surface-dark/10 transition-colors hover:bg-danger hover:text-white hover:ring-danger dark:bg-background-dark dark:text-text-dark/50 dark:ring-surface-light/10"
-						onclick={(e) => {
-							e.stopPropagation();
-							e.preventDefault();
-							promptDeleteCategory(category);
-						}}
-						aria-label="Delete category"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-3 w-3"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"
-							></line></svg
-						>
-					</button>
-				{/if}
-				<div class="flex items-center gap-1 w-full justify-center">
-					{#if isEditingCategories}
-						<button
-							type="button"
-							class="flex items-center justify-center rounded p-1 text-text-light/60 dark:text-text-dark/60 hover:bg-surface-dark/10 dark:hover:bg-surface-light/10 disabled:opacity-30 transition-colors"
-							onclick={(e) => {
-								e.stopPropagation();
-								e.preventDefault();
-								moveCategory(category, -1);
-							}}
-							disabled={category.id === categories[0]?.id}
-							aria-label="Move left"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-						</button>
-					{/if}
-
-					<div
-						class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full {category.color} text-2xl text-white shadow-sm transition-transform {selectedCategoryId ===
-							category.id && !isEditingCategories
-							? 'scale-110'
-							: ''}"
-					>
-						{category.icon}
-						{#if isEditingCategories}
-							<div
-								class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									class="h-5 w-5 text-white"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									><path d="M12 20h9"></path><path
-										d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-									></path></svg
-								>
-							</div>
-						{/if}
-					</div>
-
-					{#if isEditingCategories}
-						<button
-							type="button"
-							class="flex items-center justify-center rounded p-1 text-text-light/60 dark:text-text-dark/60 hover:bg-surface-dark/10 dark:hover:bg-surface-light/10 disabled:opacity-30 transition-colors"
-							onclick={(e) => {
-								e.stopPropagation();
-								e.preventDefault();
-								moveCategory(category, 1);
-							}}
-							disabled={category.id === categories[categories.length - 1]?.id}
-							aria-label="Move right"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-						</button>
-					{/if}
-				</div>
-
-				{#if editingCategoryId === category.id}
-					<input
-						use:focusOnMount
-						type="text"
-						bind:value={editingCategoryName}
-						onblur={() => handleCategoryRename(category)}
-						onkeydown={(e) => {
-							if (e.key === 'Enter') {
-								e.preventDefault();
-								e.currentTarget.blur();
-							}
-						}}
-						class="w-full bg-background dark:bg-background-dark rounded px-1 text-center text-xs font-medium text-text-light dark:text-text-dark focus:outline-none focus:ring-1 focus:ring-primary"
-						onclick={(e) => e.stopPropagation()}
-					/>
-				{:else}
-					<span
-						class="w-full truncate text-center text-xs font-medium {selectedCategoryId ===
-							category.id && !isEditingCategories
-							? 'text-primary'
-							: 'text-text-light/80 dark:text-text-dark/80'}">{category.name}</span
-					>
-				{/if}
-			</div>
+				onrename={() => handleCategoryRename(category)}
+				ondragstart={(e) => handleDragStart(e, categories.indexOf(category))}
+				ondragover={(e) => handleDragOver(e, categories.indexOf(category))}
+				ondragleave={handleDragLeave}
+				ondrop={(e) => handleDrop(e, categories.indexOf(category))}
+				ondragend={handleDragEnd}
+			/>
 		{/each}
 
 		<button
