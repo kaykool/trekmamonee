@@ -22,4 +22,11 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 # Playwright
-test-results
+test-results/
+playwright-report/
+blob-report/
+
+# Scratch and Temp
+scratch/
+.gemini/
+*.log
