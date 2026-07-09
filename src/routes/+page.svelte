@@ -1,11 +1,9 @@
 <script lang="ts">
-	import MonthSelector from '$lib/components/dashboard/MonthSelector.svelte';
 	import IncomeExpenseSummary from '$lib/components/dashboard/IncomeExpenseSummary.svelte';
+	import MonthSelector from '$lib/components/dashboard/MonthSelector.svelte';
 	import RecentTransactions from '$lib/components/dashboard/RecentTransactions.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import { db, type Transaction } from '$lib/db';
-	import { liveQuery } from 'dexie';
-	import { openEditTransaction, openConfirmDialog } from '$lib/state/ui.svelte';
 	import {
 		getMonthSummary,
 		getRecentTransactions,
@@ -13,17 +11,27 @@
 		type RecentTransaction
 	} from '$lib/db/queries';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
+	import { openConfirmDialog, openEditTransaction } from '$lib/state/ui.svelte';
+	import { liveQuery } from 'dexie';
 
 	let displayMonth = $derived(
 		globalDateState.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 	);
 
 	function prevMonth() {
-		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() - 1, 1);
+		globalDateState.currentDate = new Date(
+			globalDateState.currentDate.getFullYear(),
+			globalDateState.currentDate.getMonth() - 1,
+			1
+		);
 	}
 
 	function nextMonth() {
-		globalDateState.currentDate = new Date(globalDateState.currentDate.getFullYear(), globalDateState.currentDate.getMonth() + 1, 1);
+		globalDateState.currentDate = new Date(
+			globalDateState.currentDate.getFullYear(),
+			globalDateState.currentDate.getMonth() + 1,
+			1
+		);
 	}
 
 	let monthSummary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });

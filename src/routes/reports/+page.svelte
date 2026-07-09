@@ -1,20 +1,13 @@
 <script lang="ts">
-	import Card from '$lib/components/ui/Card.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
 	import { db, type Transaction } from '$lib/db';
-	import { liveQuery } from 'dexie';
-	import {
-		Chart,
-		BarController,
-		BarElement,
-		CategoryScale,
-		LinearScale,
-		Tooltip
-	} from 'chart.js';
-	import type { MonthSummary, CategoryTotal } from '$lib/db/queries';
-	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
+	import type { CategoryTotal, MonthSummary } from '$lib/db/queries';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
+	import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
+	import { liveQuery } from 'dexie';
+	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
 
 	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -51,7 +44,10 @@
 			};
 			return `${start.toLocaleDateString('default', options)} - ${end.toLocaleDateString('default', options)}`;
 		} else {
-			return globalDateState.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+			return globalDateState.currentDate.toLocaleString('default', {
+				month: 'long',
+				year: 'numeric'
+			});
 		}
 	});
 
