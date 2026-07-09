@@ -25,6 +25,8 @@ jobs:
 
       - name: Build SvelteKit App
         run: npm run build
+        env:
+          DATABASE_URL: "mysql://dummy:dummy@localhost:3306/dummy"
 
       - name: Trigger App Restart (Create tmp/restart.txt)
         run: |
