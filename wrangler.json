@@ -6,7 +6,8 @@
 		{
 			"binding": "DB",
 			"database_name": "trekmamonee-db",
-			"database_id": "4b6a2948-e233-428f-91c1-99eba35dc61a"
+			"database_id": "4b6a2948-e233-428f-91c1-99eba35dc61a",
+			"migrations_dir": "drizzle"
 		}
 	]
 }
