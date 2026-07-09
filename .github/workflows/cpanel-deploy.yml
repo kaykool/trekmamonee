@@ -28,15 +28,15 @@ jobs:
         env:
           DATABASE_URL: "mysql://dummy:dummy@localhost:3306/dummy"
 
-      - name: Trigger App Restart (Create tmp/restart.txt)
+      - name: Prepare Deployment Folder
         run: |
-          mkdir -p tmp
-          touch tmp/restart.txt
-
-      - name: Remove Dev Dependencies (Shrink node_modules)
-        run: |
-          rm -rf node_modules
-          npm install --omit=dev
+          mkdir deploy
+          cp -r build deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/ || true
+          cp app.cjs deploy/
+          mkdir -p deploy/tmp
+          touch deploy/tmp/restart.txt
 
       - name: Sync Files to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -45,21 +45,5 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          # Exclude files we don't want on the production server to save time
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/tests/**
-            **/.github/**
-            src/**
-            static/**
-            .svelte-kit/**
-            drizzle/**
-            scratch/**
-            *.ts
-            *.js
-            *.md
-            .npmrc
-            .prettierignore
-            .agents/**
-            node_modules/**
+          local-dir: ./deploy/
+          # No exclusions needed since we only put exactly what we need in the deploy folder!
