@@ -1,20 +1,6 @@
-import { drizzle } from 'drizzle-orm/mysql2';
-import mysql from 'mysql2/promise';
-import * as schema from './schema';
-import { env } from '$env/dynamic/private';
-
-if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
-
-const client = mysql.createPool({
-	uri: env.DATABASE_URL,
-	enableKeepAlive: true,
-	keepAliveInitialDelay: 0,
-	waitForConnections: true,
-	connectionLimit: 3,
-	queueLimit: 0
-});
-
-export const db = drizzle(client, { schema, mode: 'default' });
+// The global db instance has been removed. 
+// Cloudflare D1 injects the database binding per-request.
+// Use `event.locals.db` to access the database in your server routes.
 
 export async function withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
 	let retries = maxRetries;

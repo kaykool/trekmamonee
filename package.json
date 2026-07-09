@@ -12,7 +12,6 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"cpanel-install": "npm install --omit=dev",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
@@ -21,9 +20,10 @@
 		"test": "npm run test:e2e"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20260702.1",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.60.0",
-		"@sveltejs/adapter-node": "^5.5.4",
+		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
 		"@tailwindcss/vite": "^4.3.0",
@@ -41,14 +41,13 @@
 		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.60.1",
 		"vite": "^8.0.16",
-		"workbox-window": "^7.4.1"
+		"workbox-window": "^7.4.1",
+		"wrangler": "^4.107.1"
 	},
 	"dependencies": {
 		"@tanstack/svelte-query": "^6.1.36",
 		"chart.js": "^4.5.1",
 		"dexie": "^4.4.4",
-		"drizzle-orm": "^0.45.2",
-		"mysql2": "^3.22.4",
 		"uuid": "^14.0.1",
 		"zod": "^4.4.3"
 	}

@@ -1,11 +1,11 @@
 import { json } from '@sveltejs/kit';
-import { db, withRetry } from '$lib/server/db';
+import { withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
 import { checkRateLimit, checkGlobalRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
 import type { RequestEvent } from './$types';
 
-export async function GET({ request, getClientAddress }: RequestEvent) {
+export async function GET({ request, getClientAddress, locals }: RequestEvent) {
 	try {
 		const ip = getClientAddress();
 		if (!checkGlobalRateLimit(ip)) {
@@ -21,6 +21,10 @@ export async function GET({ request, getClientAddress }: RequestEvent) {
 			return json({ success: false, error: 'Unauthorized' }, { status: 401 });
 		}
 		clearFailedAttempts(ip);
+
+		const db = locals.db;
+		if (!db) return json({ success: false, error: 'Database not initialized' }, { status: 500 });
+
 		const { allCategories, allTransactions } = await withRetry(async () => {
 			const cats = await db.select().from(categories);
 			const txs = await db.select().from(transactions);
@@ -40,7 +44,7 @@ export async function GET({ request, getClientAddress }: RequestEvent) {
 	}
 }
 
-export async function POST({ request, getClientAddress }: RequestEvent) {
+export async function POST({ request, getClientAddress, locals }: RequestEvent) {
 	try {
 		const ip = getClientAddress();
 		if (!checkGlobalRateLimit(ip)) {
@@ -57,12 +61,13 @@ export async function POST({ request, getClientAddress }: RequestEvent) {
 		}
 		clearFailedAttempts(ip);
 
+		const db = locals.db;
+		if (!db) return json({ success: false, error: 'Database not initialized' }, { status: 500 });
+
 		const payload = await request.json();
 		const incomingCategories = payload.data?.categories || [];
 		const incomingTransactions = payload.data?.transactions || [];
 
-		// Option A (Cloud Backup Strategy): Local Dexie is the absolute source of truth.
-		// We wipe the cloud state and replace it with the exact local state.
 		await withRetry(async () => {
 			await db.transaction(async (tx) => {
 				// Wipe cloud state
