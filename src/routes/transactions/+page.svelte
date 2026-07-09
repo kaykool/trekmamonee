@@ -96,6 +96,13 @@
 </svelte:head>
 
 <div class="flex flex-col gap-6">
+	<div class="rounded-2xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+		<p class="text-xs font-bold tracking-wider text-primary">MANAGE TRANSACTIONS</p>
+		<p class="mt-1 text-sm text-text-light/70 dark:text-text-dark/70">
+			Review monthly records, filter by type, and edit entries when details need correction.
+		</p>
+	</div>
+
 	<!-- Month Selector -->
 	<MonthSelector {displayMonth} onprev={prevMonth} onnext={nextMonth} ontoday={resetToToday} />
 

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import MonthSelector from '$lib/components/dashboard/MonthSelector.svelte';
 	import IncomeExpenseSummary from '$lib/components/dashboard/IncomeExpenseSummary.svelte';
-	import SpendingChart from '$lib/components/dashboard/SpendingChart.svelte';
 	import RecentTransactions from '$lib/components/dashboard/RecentTransactions.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import { db, type Transaction } from '$lib/db';
@@ -9,10 +8,8 @@
 	import { openEditTransaction, openConfirmDialog } from '$lib/state/ui.svelte';
 	import {
 		getMonthSummary,
-		getCategoryBreakdown,
 		getRecentTransactions,
 		type MonthSummary,
-		type CategoryTotal,
 		type RecentTransaction
 	} from '$lib/db/queries';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
@@ -30,7 +27,6 @@
 	}
 
 	let monthSummary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
-	let categoryBreakdown = $state<CategoryTotal[]>([]);
 	let recentTransactions = $state<RecentTransaction[]>([]);
 
 	// Bottom Sheet State for options
@@ -43,16 +39,14 @@
 		const month = globalDateState.currentDate.getMonth() + 1;
 
 		const sub = liveQuery(async () => {
-			const [summary, breakdown, recent] = await Promise.all([
+			const [summary, recent] = await Promise.all([
 				getMonthSummary(year, month),
-				getCategoryBreakdown(year, month, 'expense'),
 				getRecentTransactions(5)
 			]);
-			return { summary, breakdown, recent };
+			return { summary, recent };
 		}).subscribe((data) => {
 			if (data) {
 				monthSummary = data.summary;
-				categoryBreakdown = data.breakdown;
 				recentTransactions = data.recent;
 			}
 		});
@@ -96,14 +90,32 @@
 </svelte:head>
 
 <div class="flex flex-col gap-6">
+	<div class="rounded-2xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+		<p class="text-xs font-bold tracking-wider text-primary">TODAY AT A GLANCE</p>
+		<p class="mt-1 text-sm text-text-light/70 dark:text-text-dark/70">
+			Check this month quickly, then open History to manage records or Reports to analyze trends.
+		</p>
+		<div class="mt-3 flex gap-2">
+			<a
+				href="/transactions"
+				class="rounded-full bg-surface-dark/5 px-3 py-1 text-xs font-semibold text-text-light transition-colors hover:bg-surface-dark/10 dark:bg-surface-light/10 dark:text-text-dark dark:hover:bg-surface-light/15"
+			>
+				Manage history
+			</a>
+			<a
+				href="/reports"
+				class="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/25"
+			>
+				View trends
+			</a>
+		</div>
+	</div>
+
 	<!-- Month Selector -->
 	<MonthSelector {displayMonth} onprev={prevMonth} onnext={nextMonth} ontoday={resetToToday} />
 
 	<!-- Summary Cards -->
 	<IncomeExpenseSummary {monthSummary} />
-
-	<!-- Spending Chart Card -->
-	<SpendingChart {categoryBreakdown} totalExpense={monthSummary.totalExpense} />
 
 	<!-- Recent Transactions -->
 	<RecentTransactions {recentTransactions} ontransactionclick={handleTransactionClick} />

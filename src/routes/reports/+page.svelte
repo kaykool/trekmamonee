@@ -55,6 +55,11 @@
 		}
 	});
 
+	let resetLabel = $derived.by(() => {
+		if (view === 'weekly') return 'This week';
+		return 'This month';
+	});
+
 	function prev() {
 		const d = new SvelteDate(globalDateState.currentDate);
 		if (view === 'weekly') {
@@ -227,6 +232,13 @@
 </svelte:head>
 
 <div class="flex flex-col gap-6">
+	<div class="rounded-2xl bg-surface-light p-4 shadow-sm dark:bg-surface-dark">
+		<p class="text-xs font-bold tracking-wider text-primary">PATTERNS AND INSIGHTS</p>
+		<p class="mt-1 text-sm text-text-light/70 dark:text-text-dark/70">
+			Use weekly and monthly views to spot where money goes and how your balance trends over time.
+		</p>
+	</div>
+
 	<!-- View toggle -->
 	<div class="flex w-full rounded-lg bg-surface-dark/5 p-1 dark:bg-surface-light/10">
 		<button
@@ -268,7 +280,7 @@
 				class="mt-1 rounded-full bg-primary/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary transition-all hover:bg-primary/20 active:scale-95"
 				onclick={resetToToday}
 			>
-				Today
+				{resetLabel}
 			</button>
 		</div>
 		<Button variant="ghost" size="icon" onclick={next} aria-label="Next Period">

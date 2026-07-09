@@ -46,9 +46,6 @@ test.describe('Dashboard & Charts', () => {
 		await expect(page.getByText('Expenses', { exact: true })).toBeVisible();
 		await expect(page.getByText('Balance', { exact: true })).toBeVisible();
 
-		// Spending chart empty state
-		await expect(page.getByText('No expenses this month')).toBeVisible();
-
 		// Recent transactions empty state
 		await expect(page.getByText('No transactions yet')).toBeVisible();
 	});
@@ -89,46 +86,19 @@ test.describe('Dashboard & Charts', () => {
 		await expect(page.locator('text=Rp 2.000.000').first()).toBeVisible();
 	});
 
-	test('Spending chart renders when expenses exist', async ({ page }) => {
+	test('Dashboard focuses on snapshot and quick access to deeper pages', async ({ page }) => {
 		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
 		await page.goto('/');
 
-		// Add an expense
-		await addTransaction(page, { type: 'expense', amount: '50000', name: 'Coffee' });
-
-		// Go to dashboard
-		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
-		await page.goto('/');
-		await page.waitForTimeout(500);
-
-		// "No expenses this month" should be gone
-		await expect(page.locator('text=No expenses this month')).not.toBeVisible();
-
-		// The canvas element should exist (Chart.js renders to canvas)
-		const canvas = page.locator('canvas');
-		await expect(canvas).toBeVisible();
-
-		// The center total label should show
-		await expect(page.locator('text=Total')).toBeVisible();
-	});
-
-	test('Category breakdown shows category rows', async ({ page }) => {
-		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
-		await page.goto('/');
-
-		// Add two expenses in different categories
-		await addTransaction(page, { type: 'expense', amount: '100000', name: 'Groceries' });
-
-		// Go to dashboard
-		await page.addInitScript(() => window.localStorage.setItem('initial_setup_completed', 'true'));
-		await page.goto('/');
-		await page.waitForTimeout(500);
-
-		// BY CATEGORY header should be visible
-		await expect(page.locator('text=BY CATEGORY')).toBeVisible();
-
-		// The category name should appear with percentage
-		await expect(page.locator('text=100%')).toBeVisible();
+		await expect(page.getByText('TODAY AT A GLANCE')).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Manage history' })).toHaveAttribute(
+			'href',
+			'/transactions'
+		);
+		await expect(page.getByRole('link', { name: 'View trends' })).toHaveAttribute(
+			'href',
+			'/reports'
+		);
 	});
 
 	test('Recent transactions show latest items with View All link', async ({ page }) => {
@@ -171,8 +141,8 @@ test.describe('Dashboard & Charts', () => {
 		await page.getByLabel('Previous month').click();
 		await page.waitForTimeout(300);
 
-		// Previous month should show empty state (no expenses added there)
-		await expect(page.locator('text=No expenses this month')).toBeVisible();
+		// Previous month should show no matching summary amount
+		await expect(page.locator('text=Rp 30.000').first()).not.toBeVisible();
 
 		// Navigate back to current month
 		await page.getByLabel('Next month').click();
