@@ -1,0 +1,16 @@
+---
+deployment:
+  tasks:
+    # 1. Install all dependencies (including devDependencies required for the build)
+    - npm install
+    
+    # 2. Build the SvelteKit app (providing a dummy DATABASE_URL since it's required during build)
+    - export DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy"
+    - npm run build
+    
+    # 3. Remove dev dependencies to clean up the production environment
+    - npm prune --production
+    
+    # 4. Trigger the Node.js application to restart in cPanel (Passenger)
+    - mkdir -p tmp
+    - touch tmp/restart.txt

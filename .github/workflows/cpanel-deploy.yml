@@ -53,3 +53,13 @@ jobs:
             **/.github/**
             src/**
             static/**
+            .svelte-kit/**
+            drizzle/**
+            scratch/**
+            *.ts
+            *.js
+            *.md
+            .npmrc
+            .prettierignore
+            .agents/**
+            node_modules/**
