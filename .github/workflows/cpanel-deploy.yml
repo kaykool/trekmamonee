@@ -33,6 +33,9 @@ jobs:
           mkdir -p tmp
           touch tmp/restart.txt
 
+      - name: Remove Dev Dependencies (Shrink node_modules)
+        run: npm prune --omit=dev
+
       - name: Sync Files to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
