@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install Dependencies
@@ -32,6 +32,9 @@ jobs:
         run: |
           mkdir -p tmp
           touch tmp/restart.txt
+
+      - name: Remove Dev Dependencies (Shrink node_modules)
+        run: npm prune --omit=dev
 
       - name: Sync Files to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
