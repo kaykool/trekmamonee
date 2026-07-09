@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Card from '$lib/components/ui/Card.svelte';
-	import { Chart, registerables } from 'chart.js';
+	import { Chart, DoughnutController, ArcElement, Tooltip, Legend } from 'chart.js';
 	import type { CategoryTotal } from '$lib/db/queries';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
 
-	Chart.register(...registerables);
+	Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
 	let {
 		categoryBreakdown,

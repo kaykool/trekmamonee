@@ -24,7 +24,7 @@
 	--radius-md: 0.75rem;
 	--radius-full: 9999px;
 
-	--font-sans: 'Inter', system-ui, sans-serif;
+	--font-sans: system-ui, sans-serif;
 }
 
 @layer base {

@@ -5,6 +5,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
 		%sveltekit.head%
+		<style>
+			#app-shell-loader { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; z-index: 9999; }
+			html.dark #app-shell-loader { background: #0c0023; color: white; }
+			.app-spinner { width: 32px; height: 32px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #3b82f6; animation: app-spin 1s linear infinite; margin-bottom: 1rem; }
+			html.dark .app-spinner { border-color: rgba(255,255,255,0.1); border-top-color: #3b82f6; }
+			@keyframes app-spin { 100% { transform: rotate(360deg); } }
+		</style>
 		<script>
 			try {
 				if (
@@ -19,6 +26,11 @@
 		</script>
 	</head>
 	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
+		<div style="display: contents">
+			<div id="app-shell-loader">
+				<div class="app-spinner"></div>
+			</div>
+			%sveltekit.body%
+		</div>
 	</body>
 </html>
