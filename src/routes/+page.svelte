@@ -1,14 +1,14 @@
 <script lang="ts">
+	import DailyBreakdown from '$lib/components/dashboard/DailyBreakdown.svelte';
 	import IncomeExpenseSummary from '$lib/components/dashboard/IncomeExpenseSummary.svelte';
 	import MonthSelector from '$lib/components/dashboard/MonthSelector.svelte';
-	import RecentTransactions from '$lib/components/dashboard/RecentTransactions.svelte';
 	import TransactionOptionsSheet from '$lib/components/transactions/TransactionOptionsSheet.svelte';
 	import { db, type Transaction } from '$lib/db';
 	import {
+		getDailyBreakdown,
 		getMonthSummary,
-		getRecentTransactions,
-		type MonthSummary,
-		type RecentTransaction
+		type DailyBreakdown as DailyBreakdownType,
+		type MonthSummary
 	} from '$lib/db/queries';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 	import { openConfirmDialog, openEditTransaction } from '$lib/state/ui.svelte';
@@ -36,7 +36,7 @@
 	}
 
 	let monthSummary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
-	let recentTransactions = $state<RecentTransaction[]>([]);
+	let dailyBreakdown = $state<DailyBreakdownType[]>([]);
 
 	// Bottom Sheet State for options
 	let isSheetOpen = $state(false);
@@ -48,15 +48,15 @@
 		const month = globalDateState.currentDate.getMonth() + 1;
 
 		const sub = liveQuery(async () => {
-			const [summary, recent] = await Promise.all([
+			const [summary, daily] = await Promise.all([
 				getMonthSummary(year, month),
-				getRecentTransactions(5)
+				getDailyBreakdown(year, month)
 			]);
-			return { summary, recent };
+			return { summary, daily };
 		}).subscribe((data) => {
 			if (data) {
 				monthSummary = data.summary;
-				recentTransactions = data.recent;
+				dailyBreakdown = data.daily;
 			}
 		});
 
@@ -126,8 +126,8 @@
 	<!-- Summary Cards -->
 	<IncomeExpenseSummary {monthSummary} />
 
-	<!-- Recent Transactions -->
-	<RecentTransactions {recentTransactions} ontransactionclick={handleTransactionClick} />
+	<!-- Daily Breakdown -->
+	<DailyBreakdown {dailyBreakdown} ontransactionclick={handleTransactionClick} />
 </div>
 
 <!-- Transaction Options Sheet -->

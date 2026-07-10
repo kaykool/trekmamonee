@@ -133,6 +133,60 @@ export async function getCategoryBreakdownByDateRange(
 	return result;
 }
 
+export interface DailyBreakdown {
+	date: string;
+	dayLabel: string;
+	transactions: RecentTransaction[];
+	totalIncome: number;
+	totalExpense: number;
+}
+
+/**
+ * Get all transactions for a month grouped by day, with daily totals.
+ */
+export async function getDailyBreakdown(
+	year: number,
+	month: number
+): Promise<DailyBreakdown[]> {
+	const monthPrefix = `${year}-${String(month).padStart(2, '0')}`;
+
+	const [transactions, categories] = await Promise.all([
+		db.transactions.where('date').startsWith(monthPrefix).toArray(),
+		db.categories.toArray()
+	]);
+
+	const categoryMap = new Map(categories.map((c) => [c.id, c]));
+
+	const grouped = new Map<string, RecentTransaction[]>();
+	for (const tx of transactions) {
+		const day = grouped.get(tx.date) || [];
+		day.push({ transaction: tx, category: categoryMap.get(tx.categoryId) });
+		grouped.set(tx.date, day);
+	}
+
+	const result: DailyBreakdown[] = [];
+	for (const [date, txs] of grouped) {
+		let totalIncome = 0;
+		let totalExpense = 0;
+		for (const { transaction } of txs) {
+			if (transaction.type === 'income') totalIncome += transaction.amount;
+			else totalExpense += transaction.amount;
+		}
+		const [y, m, d] = date.split('-').map(Number);
+		const dateObj = new Date(y, m - 1, d);
+		result.push({
+			date,
+			dayLabel: dateObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' }),
+			transactions: txs,
+			totalIncome,
+			totalExpense
+		});
+	}
+
+	result.sort((a, b) => b.date.localeCompare(a.date));
+	return result;
+}
+
 /**
  * Get the N most recent transactions with their category data.
  */
