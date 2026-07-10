@@ -11,15 +11,15 @@ Fix lint errors and contribute prevention tips back to the typescript-coding ski
 
 ### Step 1: Identify Lint Errors
 
-Run the lint check to see current errors:
+Run lint to see current errors:
 
 ```bash
-npm run lint:check
+npm run lint
 ```
 
 Parse the output to identify:
 
-- Rule name (e.g., `noExplicitAny`, `useImportType`, `noUnusedVariables`)
+- Rule name (e.g., `@typescript-eslint/no-explicit-any`, `@typescript-eslint/consistent-type-imports`)
 - File path and line number
 - Error message
 
@@ -27,7 +27,7 @@ Parse the output to identify:
 
 Determine if this is:
 
-- **Auto-fixable**: Biome can fix it with `--write`
+- **Auto-fixable**: ESLint can fix it with `--fix`
 - **Manual fix required**: Requires code changes
 - **Pattern-based**: Represents a recurring anti-pattern worth documenting
 
@@ -36,21 +36,18 @@ Determine if this is:
 For auto-fixable errors:
 
 ```bash
-npm run lint
+npx eslint --fix .
 ```
 
 For manual fixes, apply the appropriate correction based on the rule:
 
-| Rule                      | Fix Pattern                                                            |
-| ------------------------- | ---------------------------------------------------------------------- |
-| `noExplicitAny`           | Replace `any` with proper type, `unknown`, or generic                  |
-| `useImportType`           | Change `import { Foo }` to `import type { Foo }` for type-only imports |
-| `useExportType`           | Change `export { Foo }` to `export type { Foo }` for type-only exports |
-| `noUnusedVariables`       | Remove the variable or use it                                          |
-| `noUnusedImports`         | Remove the import                                                      |
-| `useConst`                | Change `let` to `const` for non-reassigned variables                   |
-| `noNonNullAssertion`      | Use proper null checks, optional chaining, or `invariant`              |
-| `noUselessTypeConstraint` | Remove redundant `extends unknown` or `extends any`                    |
+| Rule                                     | Fix Pattern                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `@typescript-eslint/no-explicit-any`     | Replace `any` with proper type, `unknown`, or generic                  |
+| `@typescript-eslint/consistent-type-imports` | Change `import { Foo }` to `import type { Foo }` for type-only imports |
+| `@typescript-eslint/no-unused-vars`      | Remove the variable or prefix with `_`                                 |
+| `prefer-const`                           | Change `let` to `const` for non-reassigned variables                   |
+| `@typescript-eslint/no-non-null-assertion` | Use proper null checks, optional chaining, or invariant              |
 
 ### Step 4: Extract the Lesson
 
@@ -142,38 +139,37 @@ const value = maybeNull;
 
 ## Integration with Verification Pipeline
 
-After fixing lint errors, run the full verification:
+After fixing lint errors, run type checking to confirm no regressions:
 
 ```bash
-./verify.sh --ui=false
+npm run check
 ```
 
 This ensures:
 
 - Lint passes
-- Types still check
-- Tests still pass
+- TypeScript types still check
 - No regressions introduced
 
 ## Example Session
 
 ```
-$ npm run lint:check
-src/parser.ts:42:10 - lint/suspicious/noExplicitAny - Unexpected any. Specify a different type.
+$ npm run lint
+src/parser.ts:42:10 - @typescript-eslint/no-explicit-any - Unexpected any. Specify a different type.
 
 > Analysis: The function accepts `any` because the input type wasn't defined.
 > Fix: Create a proper input type and use type guards.
-> Lesson: This pattern (typing unknown external data) is already covered in typescript-coding skill under "Precise type guards to refine unknown data safely". No new tenet needed.
+> Lesson: This pattern is already covered in typescript-coding skill. No new tenet needed.
 
-$ npm run lint:check
-src/utils.ts:15:1 - lint/style/useImportType - All these imports are only used as types.
+$ npm run lint
+src/utils.ts:15:1 - @typescript-eslint/consistent-type-imports - All these imports are only used as types.
 
 > Analysis: Importing types as values causes unnecessary runtime code.
 > Fix: Change to `import type { ... }`.
-> Lesson: Already covered by Biome auto-fix. No tenet needed (too trivial).
+> Lesson: Too trivial for a new tenet.
 
-$ npm run lint:check
-src/cache.ts:88:5 - lint/correctness/noUnusedVariables - Variable 'temp' is declared but never used.
+$ npm run lint
+src/cache.ts:88:5 - @typescript-eslint/no-unused-vars - Variable 'temp' is declared but never used.
 
 > Analysis: Dead code from refactoring.
 > Fix: Remove the variable.

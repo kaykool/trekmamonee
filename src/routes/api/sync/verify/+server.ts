@@ -1,10 +1,16 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { validateOrigin } from '$lib/server/validation';
 import { checkRateLimit, checkGlobalRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
 import type { RequestEvent } from './$types';
 
 export async function POST({ request, getClientAddress }: RequestEvent) {
 	try {
+		const originCheck = validateOrigin(request);
+		if (!originCheck.valid) {
+			return json({ success: false, error: originCheck.reason }, { status: 403 });
+		}
+
 		const ip = getClientAddress();
 		if (!checkGlobalRateLimit(ip)) {
 			return json({ success: false, error: 'Too many requests. Please try again later.' }, { status: 429 });

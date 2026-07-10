@@ -80,3 +80,126 @@ myDate.setDate(myDate.getDate() - 1);
 ```
 
 > This avoids the `svelte/prefer-svelte-reactivity` lint error and ensures state updates trigger properly in Svelte 5.
+
+### Tenet: Validate API input at boundaries with Zod
+
+DON'T:
+
+```ts
+// Manual casts disable type checking and miss invalid payloads
+const incoming = payload.data?.categories || [];
+const sanitized = incoming.map((c: Record<string, unknown>) => ({
+	name: (c.name as string) || 'Unknown',
+	amount: (c.amount as number) || 0
+}));
+```
+
+DO:
+
+```ts
+// Zod validates shape + types at the boundary
+const parsed = SyncPayloadSchema.safeParse(rawPayload);
+if (!parsed.success) {
+	return json({ error: 'Invalid payload', details: parsed.error.issues }, { status: 400 });
+}
+const { categories, transactions } = parsed.data.data;
+```
+
+> This guarantees type correctness and provides structured error messages. Always validate before any business logic.
+
+### Tenet: Use sessionStorage for transient secrets, not localStorage
+
+DON'T:
+
+```ts
+// localStorage persists to disk indefinitely — secrets leak from closed browser sessions
+localStorage.setItem('cloud_sync_password', password);
+```
+
+DO:
+
+```ts
+// sessionStorage clears when browser closes — secrets don't persist across sessions
+sessionStorage.setItem('cloud_sync_password', password);
+```
+
+> `localStorage` survives browser close/restart. `sessionStorage` is scoped to the tab session, reducing the exposure window for stored secrets.
+
+### Tenet: Prefer upsert over wipe+reinsert for sync operations
+
+DON'T:
+
+```ts
+// Delete-all + re-insert causes data loss if two clients sync concurrently
+await tx.delete(transactions);
+await tx.delete(categories);
+await tx.insert(categories).values(allCategories);
+await tx.insert(transactions).values(allTransactions);
+```
+
+DO:
+
+```ts
+// Upsert preserves data that wasn't part of this sync batch
+for (const cat of incomingCategories) {
+	await tx.insert(categories)
+		.values(cat)
+		.onConflictDoUpdate({
+			target: categories.id,
+			set: { /* all fields */ }
+		});
+}
+```
+
+> Wipe+reinsert is not safe under concurrency. Upsert ensures no data is lost when multiple clients sync simultaneously.
+
+### Tenet: Validate Origin/Referer on authenticated endpoints
+
+DON'T:
+
+```ts
+// No origin check — any website can trigger requests from a logged-in browser
+export async function POST({ request }) { ... }
+```
+
+DO:
+
+```ts
+// Reject requests from unexpected origins
+const originCheck = validateOrigin(request);
+if (!originCheck.valid) {
+	return json({ error: originCheck.reason }, { status: 403 });
+}
+```
+
+> Custom headers like `x-api-key` are not auto-sent by browsers in CSRF attacks, but Origin/Referer validation provides defense-in-depth. Always check in production.
+
+### Tenet: Clean up Dexie liveQuery subscriptions in Svelte 5
+
+DON'T:
+
+```svelte
+<script lang="ts">
+	$effect(() => {
+		liveQuery(() => db.transactions.toArray()).subscribe((res) => {
+			transactions = res;
+		});
+		// No cleanup — subscription lives forever, causes memory leaks on re-render
+	});
+</script>
+```
+
+DO:
+
+```svelte
+<script lang="ts">
+	$effect(() => {
+		const sub = liveQuery(() => db.transactions.toArray()).subscribe((res) => {
+			transactions = res;
+		});
+		return () => sub.unsubscribe();
+	});
+</script>
+```
+
+> `$effect` re-runs when its dependencies change. Without returning a cleanup function, each re-run creates a new subscription without disposing the old one, causing memory leaks and stale data.

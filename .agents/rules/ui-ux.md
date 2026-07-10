@@ -29,3 +29,7 @@ Avoid:
 - Visual clutter
 
 Use animations only to improve understanding.
+
+### Priority resolution
+
+When `ui-ux.md` guidance conflicts with design-direction guidance (e.g., `frontend-design` skill), usability constraints take precedence over visual risk-taking for functional and critical paths (navigation, forms, data display). Visual risks should be limited to decorative or marketing surfaces.

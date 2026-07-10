@@ -28,7 +28,7 @@ export async function backupToCloud() {
 			throw new Error(result.error || 'Failed to backup to cloud');
 		}
 
-		localStorage.setItem('last_sync', new Date().toISOString());
+		sessionStorage.setItem('last_sync', new Date().toISOString());
 		syncStore.setUnsynced(false);
 		return true;
 	} catch (error) {
@@ -53,7 +53,7 @@ export async function restoreFromCloud() {
 		const categories = result.data?.categories || [];
 		const transactions = result.data?.transactions || [];
 
-		// Option A: Cloud backup replaces local DB completely
+		// Cloud backup replaces local DB completely
 		await db.transaction('rw', db.categories, db.transactions, async () => {
 			await db.categories.clear();
 			await db.transactions.clear();
@@ -66,7 +66,7 @@ export async function restoreFromCloud() {
 			}
 		});
 
-		localStorage.setItem('last_sync', new Date().toISOString());
+		sessionStorage.setItem('last_sync', new Date().toISOString());
 		syncStore.setUnsynced(false);
 		return true;
 	} catch (error) {
@@ -76,7 +76,7 @@ export async function restoreFromCloud() {
 }
 
 export function getLastSyncTime(): string | null {
-	return localStorage.getItem('last_sync');
+	return sessionStorage.getItem('last_sync');
 }
 
 export async function verifyCloudPassword(password: string): Promise<boolean> {

@@ -92,6 +92,48 @@ export async function getCategoryBreakdown(
 }
 
 /**
+ * Get spending breakdown by category for an arbitrary date range.
+ * Supports both monthly prefix ('2024-03') and full date range (start/end inclusive).
+ */
+export async function getCategoryBreakdownByDateRange(
+	startDate: string,
+	endDate: string,
+	type: 'income' | 'expense' = 'expense'
+): Promise<CategoryTotal[]> {
+	const transactions = await db.transactions
+		.where('date')
+		.between(startDate, endDate, true, true)
+		.toArray();
+
+	const allCategories = await db.categories.toArray();
+	const categoryMap = new Map(allCategories.map((c) => [c.id, c]));
+
+	const totals = new Map<string, number>();
+	for (const tx of transactions) {
+		if (tx.type !== type) continue;
+		totals.set(tx.categoryId, (totals.get(tx.categoryId) || 0) + tx.amount);
+	}
+
+	const grandTotal = Array.from(totals.values()).reduce((sum, v) => sum + v, 0);
+	const result: CategoryTotal[] = [];
+
+	for (const [categoryId, total] of totals) {
+		const cat = categoryMap.get(categoryId);
+		result.push({
+			categoryId,
+			categoryName: cat?.name || 'Unknown',
+			icon: cat?.icon || '🏷️',
+			color: cat?.color || 'bg-gray-500',
+			total,
+			percentage: grandTotal > 0 ? (total / grandTotal) * 100 : 0
+		});
+	}
+
+	result.sort((a, b) => b.total - a.total);
+	return result;
+}
+
+/**
  * Get the N most recent transactions with their category data.
  */
 export async function getRecentTransactions(limit: number = 5): Promise<RecentTransaction[]> {

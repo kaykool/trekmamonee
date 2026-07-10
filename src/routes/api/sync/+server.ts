@@ -1,12 +1,18 @@
 import { json } from '@sveltejs/kit';
 import { withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
+import { SyncPayloadSchema, validateOrigin } from '$lib/server/validation';
 import { env } from '$env/dynamic/private';
 import { checkRateLimit, checkGlobalRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
 import type { RequestEvent } from './$types';
 
 export async function GET({ request, getClientAddress, locals }: RequestEvent) {
 	try {
+		const originCheck = validateOrigin(request);
+		if (!originCheck.valid) {
+			return json({ success: false, error: originCheck.reason }, { status: 403 });
+		}
+
 		const ip = getClientAddress();
 		if (!checkGlobalRateLimit(ip)) {
 			return json({ success: false, error: 'Too many requests. Please try again later.' }, { status: 429 });
@@ -46,6 +52,11 @@ export async function GET({ request, getClientAddress, locals }: RequestEvent) {
 
 export async function POST({ request, getClientAddress, locals }: RequestEvent) {
 	try {
+		const originCheck = validateOrigin(request);
+		if (!originCheck.valid) {
+			return json({ success: false, error: originCheck.reason }, { status: 403 });
+		}
+
 		const ip = getClientAddress();
 		if (!checkGlobalRateLimit(ip)) {
 			return json({ success: false, error: 'Too many requests. Please try again later.' }, { status: 429 });
@@ -64,42 +75,52 @@ export async function POST({ request, getClientAddress, locals }: RequestEvent) 
 		const db = locals.db;
 		if (!db) return json({ success: false, error: 'Database not initialized' }, { status: 500 });
 
-		const payload = await request.json();
-		const incomingCategories = payload.data?.categories || [];
-		const incomingTransactions = payload.data?.transactions || [];
+		const rawPayload = await request.json();
+		const parsed = SyncPayloadSchema.safeParse(rawPayload);
+		if (!parsed.success) {
+			return json({
+				success: false,
+				error: 'Invalid payload',
+				details: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message }))
+			}, { status: 400 });
+		}
+
+		const { categories: incomingCategories, transactions: incomingTransactions } = parsed.data.data;
 
 		await withRetry(async () => {
 			await db.transaction(async (tx) => {
-				// Wipe cloud state
-				await tx.delete(transactions);
-				await tx.delete(categories);
-				
-				// Insert new state
-				if (incomingCategories.length > 0) {
-					const sanitizedCategories = incomingCategories.map((c: Record<string, unknown>) => ({
-						...c,
-						name: (c.name as string) || 'Unknown',
-						icon: (c.icon as string) || '📌',
-						color: (c.color as string) || 'bg-gray-500',
-						type: (c.type as string) || 'expense',
-						isDefault: typeof c.isDefault === 'boolean' ? c.isDefault : false,
-						sortOrder: (c.sortOrder as number) || 0,
-						createdAt: (c.createdAt as number) || Date.now()
-					}));
-					await tx.insert(categories).values(sanitizedCategories);
+				for (const cat of incomingCategories) {
+					await tx.insert(categories)
+						.values(cat)
+						.onConflictDoUpdate({
+							target: categories.id,
+							set: {
+								name: cat.name,
+								icon: cat.icon,
+								color: cat.color,
+								type: cat.type,
+								isDefault: cat.isDefault,
+								sortOrder: cat.sortOrder,
+								createdAt: cat.createdAt
+							}
+						});
 				}
-				
-				if (incomingTransactions.length > 0) {
-					const sanitizedTransactions = incomingTransactions.map((t: Record<string, unknown>) => ({
-						...t,
-						amount: (t.amount as number) || 0,
-						type: (t.type as string) || 'expense',
-						itemName: (t.itemName as string) || 'Untitled',
-						date: (t.date as string) || new Date().toISOString().split('T')[0],
-						createdAt: (t.createdAt as number) || Date.now(),
-						updatedAt: (t.updatedAt as number) || Date.now()
-					}));
-					await tx.insert(transactions).values(sanitizedTransactions);
+
+				for (const txn of incomingTransactions) {
+					await tx.insert(transactions)
+						.values(txn)
+						.onConflictDoUpdate({
+							target: transactions.id,
+							set: {
+								amount: txn.amount,
+								categoryId: txn.categoryId,
+								type: txn.type,
+								itemName: txn.itemName,
+								date: txn.date,
+								createdAt: txn.createdAt,
+								updatedAt: txn.updatedAt
+							}
+						});
 				}
 			});
 		});

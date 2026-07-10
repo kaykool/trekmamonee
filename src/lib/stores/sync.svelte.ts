@@ -6,22 +6,22 @@ class SyncStore {
 
 	constructor() {
 		if (browser) {
-			this.hasUnsyncedChanges = localStorage.getItem('has_unsynced_changes') === 'true';
-			this.cloudPassword = localStorage.getItem('cloud_sync_password') || '';
+			this.hasUnsyncedChanges = sessionStorage.getItem('has_unsynced_changes') === 'true';
+			this.cloudPassword = sessionStorage.getItem('cloud_sync_password') || '';
 		}
 	}
 
 	setUnsynced(value: boolean) {
 		this.hasUnsyncedChanges = value;
 		if (browser) {
-			localStorage.setItem('has_unsynced_changes', value.toString());
+			sessionStorage.setItem('has_unsynced_changes', value.toString());
 		}
 	}
 
 	setCloudPassword(value: string) {
 		this.cloudPassword = value;
 		if (browser) {
-			localStorage.setItem('cloud_sync_password', value);
+			sessionStorage.setItem('cloud_sync_password', value);
 		}
 	}
 }

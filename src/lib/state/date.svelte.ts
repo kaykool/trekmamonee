@@ -1,7 +1,9 @@
+import { SvelteDate } from 'svelte/reactivity';
+
 export const globalDateState = $state({
-	currentDate: new Date()
+	currentDate: new SvelteDate()
 });
 
 export function resetToToday() {
-	globalDateState.currentDate = new Date();
+	globalDateState.currentDate = new SvelteDate();
 }

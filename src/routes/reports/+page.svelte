@@ -1,13 +1,13 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
-	import { db, type Transaction } from '$lib/db';
+	import { getCategoryBreakdownByDateRange, getMonthSummary } from '$lib/db/queries';
 	import type { CategoryTotal, MonthSummary } from '$lib/db/queries';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 	import { formatIDR, resolveTailwindColor } from '$lib/utils';
 	import { BarController, BarElement, CategoryScale, Chart, LinearScale, Tooltip } from 'chart.js';
 	import { liveQuery } from 'dexie';
-	import { SvelteDate, SvelteMap } from 'svelte/reactivity';
+	import { SvelteDate } from 'svelte/reactivity';
 
 	Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip);
 
@@ -79,63 +79,32 @@
 	let summary = $state<MonthSummary>({ totalIncome: 0, totalExpense: 0, balance: 0 });
 	let breakdown = $state<CategoryTotal[]>([]);
 
-	// Reactive subscription to Dexie data based on view & date
 	$effect(() => {
 		const currentView = view;
 		const dateObj = globalDateState.currentDate;
 
 		const sub = liveQuery(async () => {
-			let transactions: Transaction[];
+			let startStr: string;
+			let endStr: string;
 
 			if (currentView === 'weekly') {
 				const { start, end } = getWeekRange(dateObj);
-				const startStr = getLocalDateString(start);
-				const endStr = getLocalDateString(end);
-				transactions = await db.transactions
-					.where('date')
-					.between(startStr, endStr, true, true)
-					.toArray();
+				startStr = getLocalDateString(start);
+				endStr = getLocalDateString(end);
 			} else {
 				const year = dateObj.getFullYear();
 				const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-				const monthPrefix = `${year}-${month}`;
-				transactions = await db.transactions.where('date').startsWith(monthPrefix).toArray();
+				startStr = `${year}-${month}-01`;
+				const lastDay = new Date(year, dateObj.getMonth() + 1, 0).getDate();
+				endStr = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
 			}
 
-			const categoriesList = await db.categories.toArray();
-			const categoryMap = new SvelteMap(categoriesList.map((c) => [c.id, c]));
+			const [s, breakdown] = await Promise.all([
+				getMonthSummary(dateObj.getFullYear(), dateObj.getMonth() + 1),
+				getCategoryBreakdownByDateRange(startStr, endStr, 'expense')
+			]);
 
-			let totalIncome = 0;
-			let totalExpense = 0;
-			const categoryTotals = new SvelteMap<string, number>();
-
-			for (const tx of transactions) {
-				if (tx.type === 'income') {
-					totalIncome += tx.amount;
-				} else {
-					totalExpense += tx.amount;
-					categoryTotals.set(tx.categoryId, (categoryTotals.get(tx.categoryId) || 0) + tx.amount);
-				}
-			}
-
-			const list: CategoryTotal[] = [];
-			for (const [categoryId, total] of categoryTotals) {
-				const cat = categoryMap.get(categoryId);
-				list.push({
-					categoryId,
-					categoryName: cat?.name || 'Unknown',
-					icon: cat?.icon || '🏷️',
-					color: cat?.color || 'bg-gray-500',
-					total,
-					percentage: totalExpense > 0 ? (total / totalExpense) * 100 : 0
-				});
-			}
-			list.sort((a, b) => b.total - a.total);
-
-			return {
-				summary: { totalIncome, totalExpense, balance: totalIncome - totalExpense },
-				breakdown: list
-			};
+			return { summary: s, breakdown };
 		}).subscribe((data) => {
 			if (data) {
 				summary = data.summary;
