@@ -24,6 +24,12 @@
 	let showInitialSetup = $state(false);
 
 	$effect(() => {
+		if (browser) {
+			document.getElementById('app-shell-loader')?.remove();
+		}
+	});
+
+	$effect(() => {
 		if (browser && localStorage.getItem('initial_setup_completed') !== 'true') {
 			showInitialSetup = true;
 		}
