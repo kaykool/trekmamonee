@@ -6,6 +6,7 @@
 	import { db, type Category, type Transaction } from '$lib/db';
 	import { globalDateState, resetToToday } from '$lib/state/date.svelte';
 	import { openConfirmDialog, openEditTransaction } from '$lib/state/ui.svelte';
+	import { SvelteDate } from 'svelte/reactivity';
 	import { liveQuery } from 'dexie';
 
 	let typeFilter = $state('all');
@@ -16,7 +17,7 @@
 	);
 
 	function prevMonth() {
-		globalDateState.currentDate = new Date(
+		globalDateState.currentDate = new SvelteDate(
 			globalDateState.currentDate.getFullYear(),
 			globalDateState.currentDate.getMonth() - 1,
 			1
@@ -24,7 +25,7 @@
 	}
 
 	function nextMonth() {
-		globalDateState.currentDate = new Date(
+		globalDateState.currentDate = new SvelteDate(
 			globalDateState.currentDate.getFullYear(),
 			globalDateState.currentDate.getMonth() + 1,
 			1

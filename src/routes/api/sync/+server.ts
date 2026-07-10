@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { withRetry } from '$lib/server/db';
 import { transactions, categories } from '$lib/server/db/schema';
+import { safeParse } from 'valibot';
 import { SyncPayloadSchema, validateOrigin } from '$lib/server/validation';
 import { env } from '$env/dynamic/private';
 import { checkRateLimit, checkGlobalRateLimit, recordFailedAttempt, clearFailedAttempts } from '$lib/server/rateLimit';
@@ -76,16 +77,16 @@ export async function POST({ request, getClientAddress, locals }: RequestEvent) 
 		if (!db) return json({ success: false, error: 'Database not initialized' }, { status: 500 });
 
 		const rawPayload = await request.json();
-		const parsed = SyncPayloadSchema.safeParse(rawPayload);
+		const parsed = safeParse(SyncPayloadSchema, rawPayload);
 		if (!parsed.success) {
 			return json({
 				success: false,
 				error: 'Invalid payload',
-				details: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message }))
+				details: parsed.issues.map((i) => ({ path: i.path?.join('.') || '', message: i.message }))
 			}, { status: 400 });
 		}
 
-		const { categories: incomingCategories, transactions: incomingTransactions } = parsed.data.data;
+		const { categories: incomingCategories, transactions: incomingTransactions } = parsed.output.data;
 
 		await withRetry(async () => {
 			await db.transaction(async (tx) => {

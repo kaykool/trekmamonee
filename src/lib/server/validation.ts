@@ -1,34 +1,34 @@
-import { z } from 'zod';
+import { picklist, object, string, number, boolean, pipe, minLength, maxLength, regex, uuid, integer, minValue, gtValue, array, fallback } from 'valibot';
 import { dev } from '$app/environment';
 
-export const TransactionTypeSchema = z.enum(['income', 'expense']);
+export const TransactionTypeSchema = picklist(['income', 'expense']);
 
-export const CategorySchema = z.object({
-	id: z.string().uuid(),
-	name: z.string().min(1).max(100),
-	icon: z.string().min(1).max(20),
-	color: z.string().min(1).max(50),
+export const CategorySchema = object({
+	id: pipe(string(), uuid()),
+	name: pipe(string(), minLength(1), maxLength(100)),
+	icon: pipe(string(), minLength(1), maxLength(20)),
+	color: pipe(string(), minLength(1), maxLength(50)),
 	type: TransactionTypeSchema,
-	isDefault: z.boolean(),
-	sortOrder: z.number().int().min(0),
-	createdAt: z.number().positive()
+	isDefault: boolean(),
+	sortOrder: pipe(number(), integer(), minValue(0)),
+	createdAt: pipe(number(), gtValue(0))
 });
 
-export const TransactionSchema = z.object({
-	id: z.string().uuid(),
-	amount: z.number().positive(),
-	categoryId: z.string().uuid(),
+export const TransactionSchema = object({
+	id: pipe(string(), uuid()),
+	amount: pipe(number(), gtValue(0)),
+	categoryId: pipe(string(), uuid()),
 	type: TransactionTypeSchema,
-	itemName: z.string().min(1).max(200),
-	date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-	createdAt: z.number().positive(),
-	updatedAt: z.number().positive()
+	itemName: pipe(string(), minLength(1), maxLength(200)),
+	date: pipe(string(), regex(/^\d{4}-\d{2}-\d{2}$/)),
+	createdAt: pipe(number(), gtValue(0)),
+	updatedAt: pipe(number(), gtValue(0))
 });
 
-export const SyncPayloadSchema = z.object({
-	data: z.object({
-		categories: z.array(CategorySchema).default([]),
-		transactions: z.array(TransactionSchema).default([])
+export const SyncPayloadSchema = object({
+	data: object({
+		categories: fallback(array(CategorySchema), []),
+		transactions: fallback(array(TransactionSchema), [])
 	})
 });
 
